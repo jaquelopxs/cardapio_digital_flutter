@@ -4,10 +4,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'core/constants/app_colors.dart';
 import 'providers/carrinho_provider.dart';
 import 'providers/auth_provider.dart';
-import 'screens/home_screen.dart';
+import 'screens/login_register_screen.dart';
 import 'screens/cardapio_screen.dart';
 import 'screens/carrinho_screen.dart';
 import 'screens/status_pedido_screen.dart';
+import 'screens/sobre_screen.dart';
 import 'screens/admin_login_screen.dart';
 import 'screens/admin_pedidos_screen.dart';
 import 'screens/admin_produtos_screen.dart';
@@ -43,10 +44,9 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      // SIMULADOR DE CELULAR COMPLETO
       builder: (context, child) {
         return Scaffold(
-          backgroundColor: const Color(0xFF1A1A1A), // Fundo escuro atrás do celular
+          backgroundColor: const Color(0xFF1A1A1A),
           body: Center(
             child: SingleChildScrollView(
               child: Padding(
@@ -54,10 +54,9 @@ class MyApp extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // MOLDURA DO CELULAR
                     Container(
-                      width: 380, // Largura padrão de um smartphone
-                      height: 780, // Altura padrão
+                      width: 380,
+                      height: 780,
                       decoration: BoxDecoration(
                         color: Colors.black,
                         borderRadius: BorderRadius.circular(50),
@@ -72,7 +71,6 @@ class MyApp extends StatelessWidget {
                       ),
                       child: Stack(
                         children: [
-                          // TELA DO APP
                           ClipRRect(
                             borderRadius: BorderRadius.circular(38),
                             child: Container(
@@ -80,12 +78,10 @@ class MyApp extends StatelessWidget {
                               child: child,
                             ),
                           ),
-                          
-                          // NOTCH DA CÂMERA (O furinho/barra no topo)
                           Align(
                             alignment: Alignment.topCenter,
                             child: Container(
-                              margin: const EdgeInsets.top(12),
+                              margin: const EdgeInsets.only(top: 12),
                               width: 150,
                               height: 30,
                               decoration: const BoxDecoration(
@@ -101,8 +97,6 @@ class MyApp extends StatelessWidget {
                               ),
                             ),
                           ),
-
-                          // INDICADOR DE HOME (A barrinha de baixo)
                           Align(
                             alignment: Alignment.bottomCenter,
                             child: Container(
@@ -118,11 +112,6 @@ class MyApp extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Modo Visualização: Smartphone',
-                      style: TextStyle(color: Colors.white54, fontSize: 12),
-                    ),
                   ],
                 ),
               ),
@@ -132,10 +121,11 @@ class MyApp extends StatelessWidget {
       },
       initialRoute: '/',
       routes: {
-        '/': (context) => const HomeScreen(),
+        '/': (context) => const LoginRegisterScreen(),
         '/cardapio': (context) => const CardapioScreen(),
         '/carrinho': (context) => const CarrinhoScreen(),
         '/status': (context) => const StatusPedidoScreen(),
+        '/sobre': (context) => const SobreScreen(),
         '/admin': (context) => const AdminLoginScreen(),
         '/admin/pedidos': (context) => const AdminPedidosScreen(),
         '/admin/produtos': (context) => const AdminProdutosScreen(),

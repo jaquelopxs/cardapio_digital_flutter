@@ -3,9 +3,11 @@ import 'package:http/http.dart' as http;
 import '../models/produto.dart';
 import '../models/pedido.dart';
 
+import 'package:flutter/foundation.dart'; // Importante para kIsWeb
+
 class ApiService {
-  // Use 10.0.2.2 para Emulador Android ou o IP da sua máquina para dispositivo real
-  static const String baseUrl = 'http://10.0.2.2:3000'; 
+  // Use localhost para Web e 10.0.2.2 para Emulador Android
+  static String get baseUrl => kIsWeb ? 'http://localhost:3000' : 'http://10.0.2.2:3000'; 
 
   // --- PRODUTOS ---
 
@@ -114,6 +116,19 @@ class ApiService {
 
   // --- AUTENTICAÇÃO ---
 
+  Future<Map<String, dynamic>> registrar(Map<String, dynamic> dadosUsuario) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/auth/register'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(dadosUsuario),
+      );
+      return json.decode(response.body);
+    } catch (e) {
+      return {'error': 'Erro ao registrar usuário'};
+    }
+  }
+
   Future<Map<String, dynamic>> login(String email, String senha) async {
     try {
       final response = await http.post(
@@ -124,6 +139,19 @@ class ApiService {
       return json.decode(response.body);
     } catch (e) {
       return {'error': 'Servidor offline ou erro de rede'};
+    }
+  }
+
+  Future<Map<String, dynamic>> recuperarSenha(String email) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/auth/recuperar-senha'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'email': email}),
+      );
+      return json.decode(response.body);
+    } catch (e) {
+      return {'error': 'Erro ao solicitar recuperação de senha'};
     }
   }
 }

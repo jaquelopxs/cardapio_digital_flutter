@@ -22,16 +22,53 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
   final ApiService _apiService = ApiService();
   final currencyFormatter = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
 
-  Future<void> _finalizarPedido(CarrinhoProvider carrinho) async {
+  Future<void> _confirmarFinalizacao(CarrinhoProvider carrinho) async {
+    // RF009: Validação inicial
     if (_nomeController.text.isEmpty || _telefoneController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Preencha nome e telefone')),
+        const SnackBar(content: Text('Por favor, preencha seu nome e telefone para entrega.')),
       );
       return;
     }
 
+    // RF009: Apresentar resumo e solicitar confirmação
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmar Pedido'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Deseja finalizar seu pedido agora?'),
+            const SizedBox(height: 15),
+            Text('Itens selecionados: ${carrinho.quantidadeTotal}'),
+            Text('Total: ${currencyFormatter.format(carrinho.valorTotal)}', 
+                 style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('CANCELAR', style: TextStyle(color: Colors.red)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _finalizarPedido(carrinho);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
+            child: const Text('CONFIRMAR'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _finalizarPedido(CarrinhoProvider carrinho) async {
     setState(() => _isFinalizando = true);
 
+    // RF009: Enviar dados do pedido para a API
     final dadosPedido = {
       'nome_cliente': _nomeController.text,
       'telefone': _telefoneController.text,
@@ -40,6 +77,7 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
       'itens': carrinho.itens.map((item) => {
         'produto_id': item.produto.id,
         'quantidade': item.quantidade,
+        'preco_unitario': item.produto.preco,
       }).toList(),
     };
 
@@ -47,34 +85,30 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
 
     setState(() => _isFinalizando = false);
 
-    if (result.containsKey('pedido_id')) {
-      final pedidoId = result['pedido_id'];
+    if (result.containsKey('pedido_id') || result.containsKey('message')) {
       carrinho.limpar();
       
+      // RF009: Mensagem de sucesso
       showDialog(
         context: context,
         barrierDismissible: false,
         builder: (context) => AlertDialog(
           title: const Text('Pedido Realizado!'),
-          content: Text('Seu pedido #$pedidoId foi enviado com sucesso.'),
+          content: const Text('Seu pedido foi realizado com sucesso e já está sendo preparado.'),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                Navigator.pushReplacementNamed(
-                  context, 
-                  '/status', 
-                  arguments: pedidoId,
-                );
+                Navigator.pushReplacementNamed(context, '/cardapio');
               },
-              child: const Text('Acompanhar Pedido'),
+              child: const Text('OK'),
             ),
           ],
         ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro: ${result['error'] ?? 'Erro desconhecido'}')),
+        SnackBar(content: Text('Erro: ${result['error'] ?? 'Erro ao processar pedido'}')),
       );
     }
   }
@@ -102,7 +136,7 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Lista de Itens
+                // RF007: Visualizar Carrinho (Lista de Itens)
                 _buildCardContainer(
                   title: 'Itens do Pedido',
                   child: Column(
@@ -112,7 +146,7 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Total:', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                          const Text('Total do Pedido:', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                           Text(
                             currencyFormatter.format(carrinho.valorTotal),
                             style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.green),
@@ -124,12 +158,12 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Dados do Cliente
+                // Dados do Cliente para Finalização
                 _buildCardContainer(
                   title: 'Dados para Entrega',
                   child: Column(
                     children: [
-                      _buildTextField('Nome', _nomeController, 'Seu nome completo'),
+                      _buildTextField('Nome do Cliente', _nomeController, 'Informe seu nome'),
                       const SizedBox(height: 16),
                       _buildTextField('Telefone', _telefoneController, '(00) 00000-0000', keyboardType: TextInputType.phone),
                       const SizedBox(height: 16),
@@ -148,9 +182,9 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
                 ),
                 const SizedBox(height: 32),
 
-                // Botão Finalizar
+                // RF009: Botão Finalizar
                 ElevatedButton(
-                  onPressed: _isFinalizando ? null : () => _finalizarPedido(carrinho),
+                  onPressed: _isFinalizando ? null : () => _confirmarFinalizacao(carrinho),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
                     foregroundColor: Colors.white,
@@ -159,9 +193,9 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
                   ),
                   child: _isFinalizando
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : Text(
-                          'Finalizar Pedido — ${currencyFormatter.format(carrinho.valorTotal)}',
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      : const Text(
+                          'FINALIZAR PEDIDO',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                 ),
                 const SizedBox(height: 50),
@@ -220,8 +254,12 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // RF007: Nome, preço e quantidade
                 Text(item.produto.nome, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                Text(currencyFormatter.format(item.produto.preco), style: const TextStyle(color: Colors.green)),
+                Text(
+                  '${item.quantidade}x ${currencyFormatter.format(item.produto.preco)}', 
+                  style: const TextStyle(color: Colors.green)
+                ),
               ],
             ),
           ),
@@ -237,6 +275,7 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
                 onPressed: () => carrinho.atualizarQuantidade(item.produto.id, item.quantidade + 1),
               ),
               const SizedBox(width: 8),
+              // RF008: Remover item do pedido
               IconButton(
                 icon: const Icon(Icons.delete_outline, color: Colors.red),
                 onPressed: () => carrinho.remover(item.produto.id),

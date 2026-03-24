@@ -20,16 +20,19 @@ class CustomNavbar extends StatelessWidget implements PreferredSizeWidget {
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.home, color: Colors.white),
-          onPressed: () => Navigator.pushReplacementNamed(context, '/'),
+          tooltip: 'Sobre o Projeto',
+          icon: const Icon(Icons.info_outline, color: Colors.white),
+          onPressed: () => Navigator.pushNamed(context, '/sobre'),
         ),
         IconButton(
+          tooltip: 'Cardápio',
           icon: const Icon(Icons.restaurant_menu, color: Colors.white),
           onPressed: () => Navigator.pushReplacementNamed(context, '/cardapio'),
         ),
         Stack(
           children: [
             IconButton(
+              tooltip: 'Carrinho',
               icon: const Icon(Icons.shopping_cart, color: Colors.white),
               onPressed: () => Navigator.pushNamed(context, '/carrinho'),
             ),
@@ -56,6 +59,11 @@ class CustomNavbar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
           ],
+        ),
+        IconButton(
+          tooltip: 'Sair',
+          icon: const Icon(Icons.exit_to_app, color: Colors.white),
+          onPressed: () => Navigator.pushReplacementNamed(context, '/'),
         ),
       ],
     );
