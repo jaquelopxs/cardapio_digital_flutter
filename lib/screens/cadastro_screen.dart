@@ -3,29 +3,35 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../core/constants/app_colors.dart';
 
-class AdminLoginScreen extends StatefulWidget {
-  const AdminLoginScreen({super.key});
+class CadastroScreen extends StatefulWidget {
+  const CadastroScreen({super.key});
 
   @override
-  State<AdminLoginScreen> createState() => _AdminLoginScreenState();
+  State<CadastroScreen> createState() => _CadastroScreenState();
 }
 
-class _AdminLoginScreenState extends State<AdminLoginScreen> {
+class _CadastroScreenState extends State<CadastroScreen> {
+  final _nomeController = TextEditingController();
   final _emailController = TextEditingController();
+  final _telefoneController = TextEditingController();
   final _senhaController = TextEditingController();
+  final _confirmarSenhaController = TextEditingController();
 
   bool _isEmailValid(String email) {
     final emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
     return emailRegex.hasMatch(email);
   }
 
-  Future<void> _handleLogin() async {
+  Future<void> _handleRegister() async {
+    final nome = _nomeController.text.trim();
     final email = _emailController.text.trim();
+    final telefone = _telefoneController.text.trim();
     final senha = _senhaController.text.trim();
+    final confirmarSenha = _confirmarSenhaController.text.trim();
 
-    if (email.isEmpty || senha.isEmpty) {
+    if (nome.isEmpty || email.isEmpty || senha.isEmpty || confirmarSenha.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, preencha todos os campos.')),
+        const SnackBar(content: Text('Por favor, preencha todos os campos obrigatórios.')),
       );
       return;
     }
@@ -37,14 +43,29 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
       return;
     }
 
-    final auth = context.read<AuthProvider>();
-    final result = await auth.login(email, senha);
+    if (senha != confirmarSenha) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('As senhas não coincidem.')),
+      );
+      return;
+    }
 
-    if (result.containsKey('token')) {
-      Navigator.pushReplacementNamed(context, '/admin/pedidos');
+    final auth = context.read<AuthProvider>();
+    final result = await auth.register({
+      'nome': nome,
+      'email': email,
+      'telefone': telefone,
+      'senha': senha,
+    });
+
+    if (result.containsKey('message')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result['message'])),
+      );
+      Navigator.pop(context); // Volta para o login
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro: ${result['error'] ?? 'Credenciais inválidas'}')),
+        SnackBar(content: Text('Erro: ${result['error'] ?? 'Falha no cadastro'}')),
       );
     }
   }
@@ -69,22 +90,14 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Logo Circle
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: AppColors.heroGradient,
-                    ),
-                    alignment: Alignment.center,
-                    child: const Text('ES', style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
-                  ),
-                  const SizedBox(height: 24),
-                  const Text('Acesso', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                  const Text('Entre com seu e-mail e senha', style: TextStyle(color: Colors.grey)),
+                  const Text('Criar Conta', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  const Text('Preencha os dados abaixo', style: TextStyle(color: Colors.grey)),
                   const SizedBox(height: 32),
-
+                  TextField(
+                    controller: _nomeController,
+                    decoration: const InputDecoration(labelText: 'Nome Completo', border: OutlineInputBorder()),
+                  ),
+                  const SizedBox(height: 16),
                   TextField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
@@ -92,26 +105,29 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                   ),
                   const SizedBox(height: 16),
                   TextField(
+                    controller: _telefoneController,
+                    keyboardType: TextInputType.phone,
+                    decoration: const InputDecoration(labelText: 'Telefone (opcional)', border: OutlineInputBorder()),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
                     controller: _senhaController,
                     obscureText: true,
                     decoration: const InputDecoration(labelText: 'Senha', border: OutlineInputBorder()),
                   ),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () => Navigator.pushNamed(context, '/forgot-password'),
-                      child: const Text('Esqueceu a senha?', style: TextStyle(color: AppColors.primary)),
-                    ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _confirmarSenhaController,
+                    obscureText: true,
+                    decoration: const InputDecoration(labelText: 'Confirmar Senha', border: OutlineInputBorder()),
                   ),
-                  const SizedBox(height: 24),
-
+                  const SizedBox(height: 32),
                   Consumer<AuthProvider>(
                     builder: (context, auth, child) {
                       return SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: auth.isLoading ? null : _handleLogin,
+                          onPressed: auth.isLoading ? null : _handleRegister,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,
@@ -120,20 +136,15 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                           ),
                           child: auth.isLoading 
                             ? const CircularProgressIndicator(color: Colors.white) 
-                            : const Text('Entrar', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            : const Text('Cadastrar', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                         ),
                       );
                     },
                   ),
                   const SizedBox(height: 16),
                   TextButton(
-                    onPressed: () => Navigator.pushNamed(context, '/register'),
-                    child: const Text('Não tem conta? Cadastre-se', style: TextStyle(color: AppColors.primary)),
-                  ),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () => Navigator.pushReplacementNamed(context, '/'),
-                    child: const Text('Voltar ao cardápio', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Já tem uma conta? Entre aqui', style: TextStyle(color: AppColors.primary)),
                   ),
                 ],
               ),

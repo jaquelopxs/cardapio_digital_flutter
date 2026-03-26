@@ -11,6 +11,8 @@ import 'screens/status_pedido_screen.dart';
 import 'screens/admin_login_screen.dart';
 import 'screens/admin_pedidos_screen.dart';
 import 'screens/admin_produtos_screen.dart';
+import 'screens/cadastro_screen.dart';
+import 'screens/esqueceu_senha_screen.dart';
 
 void main() {
   runApp(
@@ -139,6 +141,8 @@ class MyApp extends StatelessWidget {
         '/admin': (context) => const AdminLoginScreen(),
         '/admin/pedidos': (context) => const AdminPedidosScreen(),
         '/admin/produtos': (context) => const AdminProdutosScreen(),
+        '/register': (context) => const CadastroScreen(),
+        '/forgot-password': (context) => const EsqueceuSenhaScreen(),
       },
     );
   }

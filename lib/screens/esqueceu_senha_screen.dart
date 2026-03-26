@@ -3,29 +3,27 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../core/constants/app_colors.dart';
 
-class AdminLoginScreen extends StatefulWidget {
-  const AdminLoginScreen({super.key});
+class EsqueceuSenhaScreen extends StatefulWidget {
+  const EsqueceuSenhaScreen({super.key});
 
   @override
-  State<AdminLoginScreen> createState() => _AdminLoginScreenState();
+  State<EsqueceuSenhaScreen> createState() => _EsqueceuSenhaScreenState();
 }
 
-class _AdminLoginScreenState extends State<AdminLoginScreen> {
+class _EsqueceuSenhaScreenState extends State<EsqueceuSenhaScreen> {
   final _emailController = TextEditingController();
-  final _senhaController = TextEditingController();
 
   bool _isEmailValid(String email) {
     final emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
     return emailRegex.hasMatch(email);
   }
 
-  Future<void> _handleLogin() async {
+  Future<void> _handleForgotPassword() async {
     final email = _emailController.text.trim();
-    final senha = _senhaController.text.trim();
 
-    if (email.isEmpty || senha.isEmpty) {
+    if (email.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, preencha todos os campos.')),
+        const SnackBar(content: Text('Por favor, informe seu e-mail.')),
       );
       return;
     }
@@ -38,13 +36,16 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
     }
 
     final auth = context.read<AuthProvider>();
-    final result = await auth.login(email, senha);
+    final result = await auth.forgotPassword(email);
 
-    if (result.containsKey('token')) {
-      Navigator.pushReplacementNamed(context, '/admin/pedidos');
+    if (result.containsKey('message')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result['message'])),
+      );
+      Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro: ${result['error'] ?? 'Credenciais inválidas'}')),
+        SnackBar(content: Text('Erro: ${result['error'] ?? 'Falha na solicitação'}')),
       );
     }
   }
@@ -69,49 +70,26 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Logo Circle
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: AppColors.heroGradient,
-                    ),
-                    alignment: Alignment.center,
-                    child: const Text('ES', style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
+                  const Text('Recuperar Senha', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Informe seu e-mail e enviaremos as instruções para você.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.grey),
                   ),
-                  const SizedBox(height: 24),
-                  const Text('Acesso', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                  const Text('Entre com seu e-mail e senha', style: TextStyle(color: Colors.grey)),
                   const SizedBox(height: 32),
-
                   TextField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(labelText: 'E-mail', border: OutlineInputBorder()),
                   ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _senhaController,
-                    obscureText: true,
-                    decoration: const InputDecoration(labelText: 'Senha', border: OutlineInputBorder()),
-                  ),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () => Navigator.pushNamed(context, '/forgot-password'),
-                      child: const Text('Esqueceu a senha?', style: TextStyle(color: AppColors.primary)),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
+                  const SizedBox(height: 32),
                   Consumer<AuthProvider>(
                     builder: (context, auth, child) {
                       return SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: auth.isLoading ? null : _handleLogin,
+                          onPressed: auth.isLoading ? null : _handleForgotPassword,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,
@@ -120,20 +98,15 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                           ),
                           child: auth.isLoading 
                             ? const CircularProgressIndicator(color: Colors.white) 
-                            : const Text('Entrar', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            : const Text('Enviar Instruções', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                         ),
                       );
                     },
                   ),
                   const SizedBox(height: 16),
                   TextButton(
-                    onPressed: () => Navigator.pushNamed(context, '/register'),
-                    child: const Text('Não tem conta? Cadastre-se', style: TextStyle(color: AppColors.primary)),
-                  ),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () => Navigator.pushReplacementNamed(context, '/'),
-                    child: const Text('Voltar ao cardápio', style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Voltar ao login', style: TextStyle(color: AppColors.primary)),
                   ),
                 ],
               ),

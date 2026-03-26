@@ -126,4 +126,30 @@ class ApiService {
       return {'error': 'Servidor offline ou erro de rede'};
     }
   }
+
+  Future<Map<String, dynamic>> register(Map<String, dynamic> dadosUsuario) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/auth/register'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(dadosUsuario),
+      );
+      return json.decode(response.body);
+    } catch (e) {
+      return {'error': 'Erro ao realizar cadastro'};
+    }
+  }
+
+  Future<Map<String, dynamic>> forgotPassword(String email) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/auth/forgot-password'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'email': email}),
+      );
+      return json.decode(response.body);
+    } catch (e) {
+      return {'error': 'Erro ao solicitar recuperação de senha'};
+    }
+  }
 }

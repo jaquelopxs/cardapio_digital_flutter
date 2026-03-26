@@ -31,6 +31,8 @@ CREATE TABLE itens_pedido (
 
 CREATE TABLE admin (
   id SERIAL PRIMARY KEY,
+  nome VARCHAR(100),
   email VARCHAR(150) UNIQUE NOT NULL,
+  telefone VARCHAR(20),
   senha VARCHAR(255) NOT NULL
 );

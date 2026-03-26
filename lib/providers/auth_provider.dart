@@ -37,6 +37,28 @@ class AuthProvider with ChangeNotifier {
     return result;
   }
 
+  Future<Map<String, dynamic>> register(Map<String, dynamic> dadosUsuario) async {
+    _isLoading = true;
+    notifyListeners();
+
+    final result = await ApiService().register(dadosUsuario);
+
+    _isLoading = false;
+    notifyListeners();
+    return result;
+  }
+
+  Future<Map<String, dynamic>> forgotPassword(String email) async {
+    _isLoading = true;
+    notifyListeners();
+
+    final result = await ApiService().forgotPassword(email);
+
+    _isLoading = false;
+    notifyListeners();
+    return result;
+  }
+
   Future<void> logout() async {
     _token = null;
     final prefs = await SharedPreferences.getInstance();
