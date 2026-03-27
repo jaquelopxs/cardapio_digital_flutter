@@ -12,12 +12,16 @@ const server = http.createServer(app);
 
 export const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3001",
+    origin: "*",
     methods: ["GET", "POST", "PUT"]
   }
 });
 
-app.use(cors());
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 app.use(express.json());
 
 // ROTAS
@@ -37,3 +41,6 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log("Servidor rodando na porta " + PORT);
 });
+
+// Procure onde a conexão é criada (Pool ou Client)
+console.log("Conectando ao banco:", process.env.DB_NAME);

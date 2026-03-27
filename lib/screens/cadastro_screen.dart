@@ -11,11 +11,13 @@ class CadastroScreen extends StatefulWidget {
 }
 
 class _CadastroScreenState extends State<CadastroScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _nomeController = TextEditingController();
   final _emailController = TextEditingController();
   final _telefoneController = TextEditingController();
   final _senhaController = TextEditingController();
   final _confirmarSenhaController = TextEditingController();
+  bool _isObscure = true;
 
   bool _isEmailValid(String email) {
     final emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
@@ -23,131 +25,170 @@ class _CadastroScreenState extends State<CadastroScreen> {
   }
 
   Future<void> _handleRegister() async {
-    final nome = _nomeController.text.trim();
-    final email = _emailController.text.trim();
-    final telefone = _telefoneController.text.trim();
-    final senha = _senhaController.text.trim();
-    final confirmarSenha = _confirmarSenhaController.text.trim();
-
-    if (nome.isEmpty || email.isEmpty || senha.isEmpty || confirmarSenha.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, preencha todos os campos obrigatórios.')),
-      );
-      return;
-    }
-
-    if (!_isEmailValid(email)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, insira um e-mail válido.')),
-      );
-      return;
-    }
-
-    if (senha != confirmarSenha) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('As senhas não coincidem.')),
-      );
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
     final auth = context.read<AuthProvider>();
     final result = await auth.register({
-      'nome': nome,
-      'email': email,
-      'telefone': telefone,
-      'senha': senha,
+      'nome': _nomeController.text.trim(),
+      'email': _emailController.text.trim(),
+      'telefone': _telefoneController.text.trim(),
+      'senha': _senhaController.text.trim(),
     });
 
-    if (result.containsKey('message')) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result['message'])),
-      );
-      Navigator.pop(context); // Volta para o login
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro: ${result['error'] ?? 'Falha no cadastro'}')),
-      );
+    if (mounted) {
+      if (result.containsKey('message') || result.containsKey('token')) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? 'Cadastro realizado com sucesso!'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        Navigator.pop(context); // Volta para o login
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro: ${result['error'] ?? 'Falha no cadastro'}'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        decoration: const BoxDecoration(gradient: AppColors.heroGradient),
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 400),
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 48),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 40, offset: Offset(0, 20))],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text('Criar Conta', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                  const Text('Preencha os dados abaixo', style: TextStyle(color: Colors.grey)),
-                  const SizedBox(height: 32),
-                  TextField(
-                    controller: _nomeController,
-                    decoration: const InputDecoration(labelText: 'Nome Completo', border: OutlineInputBorder()),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        foregroundColor: AppColors.primary,
+        elevation: 0,
+        title: const Text('Criar Conta', style: TextStyle(fontWeight: FontWeight.bold)),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                  'Comece sua jornada gastronômica!',
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
+                
+                // Nome
+                TextFormField(
+                  controller: _nomeController,
+                  decoration: InputDecoration(
+                    labelText: 'Nome Completo',
+                    prefixIcon: const Icon(Icons.person_outline),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(labelText: 'E-mail', border: OutlineInputBorder()),
+                  validator: (value) => value == null || value.isEmpty ? 'Informe seu nome' : null,
+                ),
+                const SizedBox(height: 16),
+                
+                // Email
+                TextFormField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: InputDecoration(
+                    labelText: 'E-mail',
+                    prefixIcon: const Icon(Icons.email_outlined),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _telefoneController,
-                    keyboardType: TextInputType.phone,
-                    decoration: const InputDecoration(labelText: 'Telefone (opcional)', border: OutlineInputBorder()),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) return 'Informe seu e-mail';
+                    if (!_isEmailValid(value)) return 'E-mail inválido';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                
+                // Telefone
+                TextFormField(
+                  controller: _telefoneController,
+                  keyboardType: TextInputType.phone,
+                  decoration: InputDecoration(
+                    labelText: 'Telefone',
+                    prefixIcon: const Icon(Icons.phone_outlined),
+                    hintText: '(00) 00000-0000',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _senhaController,
-                    obscureText: true,
-                    decoration: const InputDecoration(labelText: 'Senha', border: OutlineInputBorder()),
+                  validator: (value) => value == null || value.isEmpty ? 'Informe seu telefone' : null,
+                ),
+                const SizedBox(height: 16),
+                
+                // Senha
+                TextFormField(
+                  controller: _senhaController,
+                  obscureText: _isObscure,
+                  decoration: InputDecoration(
+                    labelText: 'Senha',
+                    prefixIcon: const Icon(Icons.lock_outlined),
+                    suffixIcon: IconButton(
+                      icon: Icon(_isObscure ? Icons.visibility : Icons.visibility_off),
+                      onPressed: () => setState(() => _isObscure = !_isObscure),
+                    ),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _confirmarSenhaController,
-                    obscureText: true,
-                    decoration: const InputDecoration(labelText: 'Confirmar Senha', border: OutlineInputBorder()),
+                  validator: (value) => value == null || value.length < 6 ? 'Mínimo 6 caracteres' : null,
+                ),
+                const SizedBox(height: 16),
+                
+                // Confirmar Senha
+                TextFormField(
+                  controller: _confirmarSenhaController,
+                  obscureText: _isObscure,
+                  decoration: InputDecoration(
+                    labelText: 'Confirmar Senha',
+                    prefixIcon: const Icon(Icons.lock_reset_outlined),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  const SizedBox(height: 32),
-                  Consumer<AuthProvider>(
-                    builder: (context, auth, child) {
-                      return SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: auth.isLoading ? null : _handleRegister,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.all(16),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                          ),
-                          child: auth.isLoading 
-                            ? const CircularProgressIndicator(color: Colors.white) 
-                            : const Text('Cadastrar', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Já tem uma conta? Entre aqui', style: TextStyle(color: AppColors.primary)),
-                  ),
-                ],
-              ),
+                  validator: (value) {
+                    if (value != _senhaController.text) return 'As senhas não coincidem';
+                    return null;
+                  },
+                ),
+                
+                const SizedBox(height: 32),
+                
+                Consumer<AuthProvider>(
+                  builder: (context, auth, child) {
+                    return ElevatedButton(
+                      onPressed: auth.isLoading ? null : _handleRegister,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        elevation: 0,
+                      ),
+                      child: auth.isLoading 
+                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) 
+                        : const Text('Cadastrar Agora', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    );
+                  },
+                ),
+                const SizedBox(height: 24),
+                
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('Já tem uma conta?'),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Entre aqui', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ),

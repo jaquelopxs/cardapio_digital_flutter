@@ -19,71 +19,63 @@ class ProdutoCard extends StatelessWidget {
     final currencyFormatter = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
 
     return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      elevation: 1,
+      margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       color: Colors.white,
-      child: Container(
-        width: 280,
-        padding: const EdgeInsets.all(15),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Imagem do Produto
+            // Informações do Produto (Esquerda)
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    produto.nome,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    produto.descricao,
+                    style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        currencyFormatter.format(produto.preco),
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+                      ),
+                      IconButton(
+                        onPressed: onAdicionar,
+                        icon: const Icon(Icons.add_circle, color: AppColors.primary, size: 28),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+            // Imagem do Produto (Direita)
             ClipRRect(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(8),
               child: CachedNetworkImage(
                 imageUrl: produto.imagem,
-                height: 160,
-                width: double.infinity,
+                height: 100,
+                width: 100,
                 fit: BoxFit.cover,
                 placeholder: (context, url) => Container(color: Colors.grey[200]),
-                errorWidget: (context, url, error) => const Icon(Icons.fastfood, size: 50, color: Colors.grey),
-              ),
-            ),
-            const SizedBox(height: 12),
-            
-            // Nome
-            Text(
-              produto.nome,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 8),
-            
-            // Descrição
-            SizedBox(
-              height: 40,
-              child: Text(
-                produto.descricao,
-                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            const SizedBox(height: 12),
-            
-            // Preço
-            Text(
-              currencyFormatter.format(produto.preco),
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.green),
-            ),
-            const SizedBox(height: 12),
-            
-            // Botão Adicionar
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: onAdicionar,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-                child: const Text('Adicionar ao Carrinho', style: TextStyle(fontWeight: FontWeight.bold)),
+                errorWidget: (context, url, error) => const Icon(Icons.fastfood, size: 40, color: Colors.grey),
               ),
             ),
           ],

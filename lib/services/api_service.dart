@@ -1,11 +1,18 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import '../models/produto.dart';
 import '../models/pedido.dart';
 
 class ApiService {
-  // Use 10.0.2.2 para Emulador Android ou o IP da sua máquina para dispositivo real
-  static const String baseUrl = 'http://10.0.2.2:3000'; 
+  // No navegador usar localhost, no Android usar 10.0.2.2
+  static String get baseUrl {
+    if (kIsWeb) {
+      return 'http://localhost:3000';
+    }
+    // Para mobile (Android) usamos 10.0.2.2, para outros localhost
+    return 'http://10.0.2.2:3000';
+  } 
 
   // --- PRODUTOS ---
 

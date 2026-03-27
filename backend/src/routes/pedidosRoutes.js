@@ -1,4 +1,10 @@
 import express from 'express';
+import * as pedidosController from '../controllers/pedidosController.js';
+
 const router = express.Router();
-router.get('/', (req, res) => res.json([]));
+
+router.get('/', pedidosController.list);
+router.post('/', pedidosController.store);
+router.put('/:id/status', pedidosController.updateStatus);
+
 export default router;

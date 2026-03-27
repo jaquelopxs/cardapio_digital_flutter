@@ -52,101 +52,84 @@ class _CardapioScreenState extends State<CardapioScreen> {
         : _produtos.where((p) => p.categoria == _categoriaSelecionada).toList();
 
     return Scaffold(
-      appBar: const CustomNavbar(),
-      backgroundColor: AppColors.surface,
+      appBar: AppBar(
+        title: const Text('Empório Sophia', style: TextStyle(fontWeight: FontWeight.bold)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_none),
+            onPressed: () {},
+          ),
+        ],
+      ),
+      backgroundColor: Colors.grey[50],
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  // Header
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Nosso Cardápio',
-                    style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.primary),
-                  ),
-                  const Text('Escolha seus favoritos', style: TextStyle(color: Colors.grey)),
-                  const SizedBox(height: 32),
-
-                  // Filtros
-                  SizedBox(
-                    height: 45,
+          : Column(
+              children: [
+                // Filtros de Categoria (Horizontal)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: SizedBox(
+                    height: 40,
                     child: ListView.separated(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
                       scrollDirection: Axis.horizontal,
                       itemCount: _categorias.length,
-                      separatorBuilder: (_, __) => const SizedBox(width: 10),
+                      separatorBuilder: (_, __) => const SizedBox(width: 12),
                       itemBuilder: (context, index) {
                         final cat = _categorias[index];
                         final isSelected = _categoriaSelecionada == cat;
-                        return InkWell(
-                          onTap: () => setState(() => _categoriaSelecionada = cat),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 24),
-                            decoration: BoxDecoration(
-                              color: isSelected ? AppColors.primary : Colors.white,
-                              borderRadius: BorderRadius.circular(25),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: isSelected ? AppColors.primary.withOpacity(0.3) : Colors.black.withOpacity(0.05),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 4),
-                                )
-                              ],
-                            ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              cat,
-                              style: TextStyle(
-                                color: isSelected ? Colors.white : Colors.black87,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                        return FilterChip(
+                          label: Text(cat),
+                          selected: isSelected,
+                          onSelected: (selected) {
+                            setState(() => _categoriaSelecionada = cat);
+                          },
+                          selectedColor: AppColors.primary.withOpacity(0.2),
+                          checkmarkColor: AppColors.primary,
+                          labelStyle: TextStyle(
+                            color: isSelected ? AppColors.primary : Colors.black87,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            side: BorderSide(color: isSelected ? AppColors.primary : Colors.grey[300]!),
                           ),
                         );
                       },
                     ),
                   ),
-                  const SizedBox(height: 32),
+                ),
 
-                  // Grid de Produtos
-                  produtosFiltrados.isEmpty
-                      ? const Padding(
-                          padding: EdgeInsets.only(top: 50),
-                          child: Text('Nenhum produto encontrado.', style: TextStyle(fontSize: 18, color: Colors.grey)),
+                // Lista de Produtos
+                Expanded(
+                  child: produtosFiltrados.isEmpty
+                      ? const Center(
+                          child: Text('Nenhum produto nesta categoria.', style: TextStyle(color: Colors.grey)),
                         )
-                      : LayoutBuilder(builder: (context, constraints) {
-                          int crossAxisCount = constraints.maxWidth > 900 ? 3 : (constraints.maxWidth > 600 ? 2 : 1);
-                          return GridView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: crossAxisCount,
-                              childAspectRatio: 0.8,
-                              crossAxisSpacing: 16,
-                              mainAxisSpacing: 16,
-                            ),
-                            itemCount: produtosFiltrados.length,
-                            itemBuilder: (context, index) {
-                              final produto = produtosFiltrados[index];
-                              return ProdutoCard(
-                                produto: produto,
-                                onAdicionar: () {
-                                  context.read<CarrinhoProvider>().adicionar(produto);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('${produto.nome} adicionado ao carrinho!'),
-                                      duration: const Duration(seconds: 1),
-                                      backgroundColor: AppColors.primaryLight,
-                                    ),
-                                  );
-                                },
-                              );
-                            },
-                          );
-                        }),
-                ],
-              ),
+                      : ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          itemCount: produtosFiltrados.length,
+                          itemBuilder: (context, index) {
+                            final produto = produtosFiltrados[index];
+                            return ProdutoCard(
+                              produto: produto,
+                              onAdicionar: () {
+                                context.read<CarrinhoProvider>().adicionar(produto);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('${produto.nome} adicionado!'),
+                                    duration: const Duration(seconds: 1),
+                                    behavior: SnackBarBehavior.floating,
+                                    backgroundColor: AppColors.primary,
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                ),
+              ],
             ),
     );
   }
