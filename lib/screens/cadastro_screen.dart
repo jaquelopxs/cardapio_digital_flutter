@@ -33,6 +33,7 @@ class _CadastroScreenState extends State<CadastroScreen> {
       'email': _emailController.text.trim(),
       'telefone': _telefoneController.text.trim(),
       'senha': _senhaController.text.trim(),
+      'confirmacaoSenha': _confirmarSenhaController.text.trim(),
     });
 
     if (mounted) {
