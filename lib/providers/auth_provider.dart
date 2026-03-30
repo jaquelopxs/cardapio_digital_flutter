@@ -59,6 +59,17 @@ class AuthProvider with ChangeNotifier {
     return result;
   }
 
+  Future<Map<String, dynamic>> verifyCode(String email, String codigo) async {
+    _isLoading = true;
+    notifyListeners();
+
+    final result = await ApiService().verifyCode(email, codigo);
+
+    _isLoading = false;
+    notifyListeners();
+    return result;
+  }
+
   Future<Map<String, dynamic>> forgotPassword(String email) async {
     _isLoading = true;
     notifyListeners();

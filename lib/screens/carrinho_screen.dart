@@ -44,6 +44,28 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
       return;
     }
 
+    // Solicitar confirmação (RF009)
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmar Pedido'),
+        content: const Text('Deseja realmente finalizar seu pedido agora?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Voltar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            child: const Text('Confirmar', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar != true) return;
+
     setState(() => _isFinalizando = true);
 
     final dadosPedido = {

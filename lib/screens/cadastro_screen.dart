@@ -38,14 +38,7 @@ class _CadastroScreenState extends State<CadastroScreen> {
 
     if (mounted) {
       if (result.containsKey('message') || result.containsKey('token')) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result['message'] ?? 'Cadastro realizado com sucesso!'),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-        Navigator.pop(context); // Volta para o login
+        _showPinDialog(context, _emailController.text.trim());
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -56,6 +49,58 @@ class _CadastroScreenState extends State<CadastroScreen> {
         );
       }
     }
+  }
+
+  void _showPinDialog(BuildContext context, String email) {
+    final pinController = TextEditingController();
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Verifique seu E-mail'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Digite o código de 6 dígitos enviado para o seu e-mail:'),
+            const SizedBox(height: 20),
+            TextField(
+              controller: pinController,
+              keyboardType: TextInputType.number,
+              maxLength: 6,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 24, letterSpacing: 8, fontWeight: FontWeight.bold),
+              decoration: const InputDecoration(border: OutlineInputBorder(), counterText: ""),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+          ElevatedButton(
+            onPressed: () async {
+              final auth = context.read<AuthProvider>();
+              final res = await auth.verifyCode(email, pinController.text);
+              if (res.containsKey('message')) {
+                if (context.mounted) {
+                  Navigator.pop(context); // Fecha dialog
+                  Navigator.pop(context); // Volta para login
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(res['message']), backgroundColor: Colors.green),
+                  );
+                }
+              } else {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(res['error'] ?? 'Código inválido'), backgroundColor: Colors.red),
+                  );
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            child: const Text('Verificar', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

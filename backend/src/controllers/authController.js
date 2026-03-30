@@ -1,6 +1,5 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
 import { pool } from '../config/db.js';
 import { transporter } from '../config/mailer.js';
 
@@ -10,57 +9,67 @@ const isEmailValid = (email) => {
   return emailRegex.test(email);
 };
 
+// Gerar código de 6 dígitos
+const generatePinCode = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
 /**
  * RF002: CADASTRO DE USUÁRIO
- * Inclui validação de campos obrigatórios e confirmação de senha.
  */
 export const register = async (req, res) => {
   const { nome, email, telefone, senha, confirmacaoSenha } = req.body;
 
-  // Verificação de campos obrigatórios (RF002)
   if (!nome || !email || !telefone || !senha || !confirmacaoSenha) {
     return res.status(400).json({ error: 'Todos os campos são obrigatórios.' });
   }
 
-  // Validação de formato de e-mail (RF002)
   if (!isEmailValid(email)) {
     return res.status(400).json({ error: 'Formato de e-mail inválido.' });
   }
 
-  // Verificação de igualdade de senhas (RF002)
   if (senha !== confirmacaoSenha) {
-    return res.status(400).json({ error: 'A senha e a confirmação de senha devem ser iguais.' });
+    return res.status(400).json({ error: 'As senhas não coincidem.' });
   }
 
   try {
-    const existingUser = await pool.query('SELECT id FROM admin WHERE email = $1', [email]);
+    const existingUser = await pool.query('SELECT id FROM usuarios WHERE email = $1', [email]);
     if (existingUser.rows.length > 0) {
-      return res.status(400).json({ error: 'E-mail já cadastrado no sistema.' });
+      return res.status(400).json({ error: 'E-mail já cadastrado.' });
     }
 
     const hashedSenha = await bcrypt.hash(senha, 10);
-    const verificacaoToken = crypto.randomBytes(32).toString('hex');
+    const verificacaoCodigo = generatePinCode();
 
     const result = await pool.query(
-      'INSERT INTO admin (nome, email, telefone, senha, verificacao_token, is_verificado) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, nome, email, telefone',
-      [nome, email, telefone, hashedSenha, verificacaoToken, false]
+      'INSERT INTO usuarios (nome, email, telefone, senha, verificacao_codigo, is_verificado) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, nome, email',
+      [nome, email, telefone, hashedSenha, verificacaoCodigo, false]
     );
 
-    const urlVerificacao = `http://localhost:3000/auth/verify/${verificacaoToken}`;
+    console.log(`\n>>> CÓDIGO PARA ${email}: ${verificacaoCodigo}\n`);
 
-    await transporter.sendMail({
-      from: '"Cardápio Digital" <seu-email@gmail.com>',
-      to: email,
-      subject: 'Verifique sua conta de Administrador',
-      html: `<h2>Olá, ${nome}!</h2>
-             <p>Clique no link abaixo para ativar sua conta:</p>
-             <a href="${urlVerificacao}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Ativar Minha Conta</a>`
-    });
-
-    res.status(201).json({ 
-      message: 'Usuário registrado! Verifique seu e-mail para ativar a conta.', 
-      user: result.rows[0] 
-    });
+    try {
+      await transporter.sendMail({
+        from: `"Empório Sophia" <${process.env.MAIL_USER}>`,
+        to: email,
+        subject: 'Seu Código de Verificação',
+        html: `<h2>Bem-vindo, ${nome}!</h2>
+               <p>Seu código de verificação para o Empório Sophia é:</p>
+               <h1 style="color: #FF5722; font-size: 32px; letter-spacing: 5px; background: #f4f4f4; padding: 10px; display: inline-block;">${verificacaoCodigo}</h1>
+               <p>Digite este código no aplicativo para ativar sua conta.</p>`
+      });
+      
+      res.status(201).json({ 
+        message: 'Cadastro realizado! Digite o código enviado ao seu e-mail.', 
+        email: email
+      });
+    } catch (mailError) {
+      res.status(201).json({ 
+        message: 'Cadastro realizado! (Verifique o código no console do servidor)', 
+        email: email,
+        dev_code: verificacaoCodigo
+      });
+    }
   } catch (error) {
     console.error('Erro no registro:', error);
     res.status(500).json({ error: 'Erro ao processar cadastro.' });
@@ -68,57 +77,62 @@ export const register = async (req, res) => {
 };
 
 /**
- * VERIFICAÇÃO DO TOKEN
+ * VERIFICAÇÃO DO CÓDIGO (PIN)
  */
-export const verifyEmail = async (req, res) => {
-  const { token } = req.params;
+export const verifyCode = async (req, res) => {
+  const { email, codigo } = req.body;
+  
+  if (!email || !codigo) {
+    return res.status(400).json({ error: 'E-mail e código são obrigatórios.' });
+  }
+
   try {
     const result = await pool.query(
-      'UPDATE admin SET is_verificado = true, verificacao_token = NULL WHERE verificacao_token = $1 RETURNING id',
-      [token]
+      'UPDATE usuarios SET is_verificado = true, verificacao_codigo = NULL WHERE email = $1 AND verificacao_codigo = $2 RETURNING id',
+      [email, codigo]
     );
-    if (result.rowCount === 0) return res.status(400).send('<h1>Link inválido ou expirado.</h1>');
-    res.send('<h1>E-mail verificado com sucesso!</h1>');
+    
+    if (result.rowCount === 0) {
+      return res.status(400).json({ error: 'Código inválido ou e-mail incorreto.' });
+    }
+    
+    res.json({ message: 'Conta verificada com sucesso! Faça seu login.' });
   } catch (error) {
-    res.status(500).send('Erro interno ao verificar e-mail.');
+    res.status(500).json({ error: 'Erro ao verificar código.' });
   }
 };
 
 /**
  * RF001: LOGIN
- * Valida preenchimento, formato de e-mail e status de verificação.
  */
 export const login = async (req, res) => {
   const { email, senha } = req.body;
 
-  if (!email || !senha) {
-    return res.status(400).json({ error: 'E-mail e senha são obrigatórios.' });
-  }
-
-  if (!isEmailValid(email)) {
-    return res.status(400).json({ error: 'Formato de e-mail inválido.' });
-  }
-
   try {
-    const result = await pool.query('SELECT * FROM admin WHERE email = $1', [email]);
+    const result = await pool.query('SELECT * FROM usuarios WHERE email = $1', [email]);
     const user = result.rows[0];
 
-    if (!user) return res.status(401).json({ error: 'Credenciais inválidas.' });
+    if (!user) return res.status(401).json({ error: 'Usuário não encontrado.' });
 
     if (!user.is_verificado) {
-      return res.status(401).json({ error: 'Conta não ativada. Verifique seu e-mail.' });
+      return res.status(401).json({ error: 'Conta não verificada. Verifique seu e-mail.' });
     }
 
     const senhaCorreta = await bcrypt.compare(senha, user.senha);
-    if (!senhaCorreta) return res.status(401).json({ error: 'Credenciais inválidas.' });
+    if (!senhaCorreta) return res.status(401).json({ error: 'Senha incorreta.' });
 
-    const token = jwt.sign(
-      { id: user.id, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: '1d' }
-    );
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1d' });
 
-    res.json({ token, user: { id: user.id, email: user.email, nome: user.nome, telefone: user.telefone } });
+    res.json({ 
+      token, 
+      user: { 
+        id: user.id, 
+        email: user.email, 
+        nome: user.nome, 
+        telefone: user.telefone,
+        is_admin: user.is_admin || false 
+      } 
+    });
   } catch (error) {
     res.status(500).json({ error: 'Erro interno no servidor.' });
   }
@@ -126,39 +140,26 @@ export const login = async (req, res) => {
 
 /**
  * RF003: ESQUECEU A SENHA
- * Gera um novo hash temporário ou link de recuperação (Exemplo funcional).
  */
 export const forgotPassword = async (req, res) => {
   const { email } = req.body;
 
-  if (!email || !isEmailValid(email)) {
-    return res.status(400).json({ error: 'E-mail válido é obrigatório.' });
-  }
-
   try {
-    const result = await pool.query('SELECT nome FROM admin WHERE email = $1', [email]);
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'E-mail não localizado no sistema.' });
-    }
+    const result = await pool.query('SELECT nome FROM usuarios WHERE email = $1', [email]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'E-mail não cadastrado.' });
 
-    const nome = result.rows[0].nome;
+    const resetCodigo = generatePinCode();
+    await pool.query('UPDATE usuarios SET verificacao_codigo = $1 WHERE email = $2', [resetCodigo, email]);
 
-    // Em um sistema real, você geraria um token de reset. 
-    // Aqui simulamos o envio conforme o RF003.
     await transporter.sendMail({
-      from: '"Cardápio Digital" <seu-email@gmail.com>',
+      from: `"Empório Sophia" <${process.env.MAIL_USER}>`,
       to: email,
       subject: 'Recuperação de Senha',
-      html: `<h2>Olá, ${nome}</h2>
-             <p>Recebemos uma solicitação de recuperação de senha para sua conta.</p>
-             <p>Clique no link abaixo para definir uma nova senha:</p>
-             <a href="http://localhost:3000/reset-password">Redefinir Senha</a>`
+      html: `<p>Olá, ${result.rows[0].nome}. Seu código para redefinir a senha é: <b>${resetCodigo}</b></p>`
     });
 
-    res.json({ message: 'Instruções de recuperação enviadas para o e-mail informado.' });
+    res.json({ message: 'Código enviado ao seu e-mail.' });
   } catch (error) {
-    console.error('Erro na recuperação:', error);
-    res.status(500).json({ error: 'Erro ao processar recuperação de senha.' });
+    res.status(500).json({ error: 'Erro ao processar solicitação.' });
   }
 };

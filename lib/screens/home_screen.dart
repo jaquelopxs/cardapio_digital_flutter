@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../core/constants/app_colors.dart';
+import '../providers/auth_provider.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -9,6 +11,13 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sobre o Projeto', style: TextStyle(fontWeight: FontWeight.bold)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Sair da conta',
+            onPressed: () => _confirmarLogout(context),
+          ),
+        ],
       ),
       backgroundColor: Colors.grey[50],
       body: SingleChildScrollView(
@@ -43,26 +52,80 @@ class HomeScreen extends StatelessWidget {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primary),
             ),
             const SizedBox(height: 12),
-            // Substitua pelos nomes reais dos integrantes
-            const Text('• Integrante 1\n• Integrante 2\n• Integrante 3', 
+            const Text('• Jaqueline Santos Lopes', 
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 16, height: 1.8),
             ),
             
             const Divider(height: 48),
             
+            // Seção visível apenas para Admin
+            Consumer<AuthProvider>(
+              builder: (context, auth, child) {
+                if (auth.user?['is_admin'] != true) return const SizedBox();
+                
+                return Column(
+                  children: [
+                    _buildSectionTitle('Área do Estabelecimento'),
+                    const Text(
+                      'Acesse a dashboard para gerenciar pedidos em tempo real.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      onPressed: () => Navigator.pushNamed(context, '/dashboard'),
+                      icon: const Icon(Icons.dashboard_outlined),
+                      label: const Text('Dashboard Cozinha'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black87,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      ),
+                    ),
+                    const Divider(height: 48),
+                  ],
+                );
+              },
+            ),
+            
             _buildInfoRow('Disciplina', 'Prática Extensionista VIII'),
-            _buildInfoRow('Instituição', 'Nome da Instituição'),
-            _buildInfoRow('Professor', 'Nome do Professor'),
+            _buildInfoRow('Instituição', 'UNAERP - Ribeirão Preto'),
+            _buildInfoRow('Professor', 'Rodrigo Plotz'),
             _buildInfoRow('Versão', '1.0.0'),
             
             const SizedBox(height: 40),
             const Text(
-              '© 2025 Empório Sophia',
+              '© 2026 Empório Sophia',
               style: TextStyle(color: Colors.grey, fontSize: 12),
             ),
+            const SizedBox(height: 20),
           ],
         ),
+      ),
+    );
+  }
+
+  void _confirmarLogout(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Sair'),
+        content: const Text('Deseja realmente sair da sua conta?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              context.read<AuthProvider>().logout();
+              Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            child: const Text('Sair'),
+          ),
+        ],
       ),
     );
   }

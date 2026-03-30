@@ -147,6 +147,19 @@ class ApiService {
     }
   }
 
+  Future<Map<String, dynamic>> verifyCode(String email, String codigo) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/auth/verify-code'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'email': email, 'codigo': codigo}),
+      );
+      return json.decode(response.body);
+    } catch (e) {
+      return {'error': 'Erro ao verificar código'};
+    }
+  }
+
   Future<Map<String, dynamic>> forgotPassword(String email) async {
     try {
       final response = await http.post(
