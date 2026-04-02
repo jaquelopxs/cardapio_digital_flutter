@@ -12,6 +12,10 @@ class AuthProvider with ChangeNotifier {
   Map<String, dynamic>? get user => _user;
   bool get isAuthenticated => _token != null;
   bool get isLoading => _isLoading;
+  bool get isAdmin {
+    if (_user == null) return false;
+    return _user!['email'] == 'emporiosophia82@gmail.com';
+  }
 
   AuthProvider() {
     _loadToken();

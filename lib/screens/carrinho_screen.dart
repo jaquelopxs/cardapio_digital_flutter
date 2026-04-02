@@ -17,6 +17,7 @@ class CarrinhoScreen extends StatefulWidget {
 class _CarrinhoScreenState extends State<CarrinhoScreen> {
   final _nomeController = TextEditingController();
   final _telefoneController = TextEditingController();
+  final _enderecoController = TextEditingController();
   String _formaPagamento = 'dinheiro';
   bool _isFinalizando = false;
 
@@ -32,29 +33,27 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
       if (auth.user != null) {
         _nomeController.text = auth.user!['nome'] ?? '';
         _telefoneController.text = auth.user!['telefone'] ?? '';
+        _enderecoController.text = auth.user!['endereco'] ?? '';
       }
     });
   }
 
   Future<void> _finalizarPedido(CarrinhoProvider carrinho) async {
-    if (_nomeController.text.isEmpty || _telefoneController.text.isEmpty) {
+    if (_nomeController.text.isEmpty || _telefoneController.text.isEmpty || _enderecoController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Preencha nome e telefone'), behavior: SnackBarBehavior.floating),
+        const SnackBar(content: Text('Preencha nome, telefone e endereço/mesa'), behavior: SnackBarBehavior.floating),
       );
       return;
     }
 
-    // Solicitar confirmação (RF009)
+    // Solicitar confirmação
     final confirmar = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Confirmar Pedido'),
         content: const Text('Deseja realmente finalizar seu pedido agora?'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Voltar'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Voltar')),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
@@ -71,6 +70,7 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
     final dadosPedido = {
       'nome_cliente': _nomeController.text,
       'telefone': _telefoneController.text,
+      'endereco': _enderecoController.text,
       'forma_pagamento': _formaPagamento,
       'total': double.parse(carrinho.valorTotal.toStringAsFixed(2)),
       'itens': carrinho.itens.map((item) => {
@@ -175,6 +175,8 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
                             _buildTextField('Nome', _nomeController, 'Seu nome completo', Icons.person_outline),
                             const SizedBox(height: 16),
                             _buildTextField('Telefone', _telefoneController, '(00) 00000-0000', Icons.phone_outlined, keyboardType: TextInputType.phone),
+                            const SizedBox(height: 16),
+                            _buildTextField('Endereço ou Mesa', _enderecoController, 'Rua, número e bairro ou nº da mesa', Icons.location_on_outlined),
                             const SizedBox(height: 16),
                             DropdownButtonFormField<String>(
                               value: _formaPagamento,

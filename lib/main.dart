@@ -13,6 +13,7 @@ import 'screens/status_pedido_screen.dart';
 import 'screens/cadastro_screen.dart';
 import 'screens/esqueceu_senha_screen.dart';
 import 'screens/dashboard_screen.dart';
+import 'screens/sobre_screen.dart';
 
 void main() {
   runApp(
@@ -59,6 +60,7 @@ class MyApp extends StatelessWidget {
         '/forgot-password': (context) => const EsqueceuSenhaScreen(),
         '/main': (context) => const MainScreen(),
         '/dashboard': (context) => const DashboardScreen(),
+        '/sobre': (context) => const SobreScreen(),
       },
     );
   }

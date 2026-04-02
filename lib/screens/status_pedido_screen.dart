@@ -43,7 +43,17 @@ class _StatusPedidoScreenState extends State<StatusPedidoScreen> {
       final pedidos = await _apiService.getTodosPedidos(auth.token!);
       if (mounted) {
         setState(() {
-          _pedidos = pedidos;
+          // Se for admin, vê tudo. Se for cliente, vê apenas os dele.
+          if (auth.isAdmin) {
+             _pedidos = pedidos;
+          } else {
+             // Filtra pelo nome ou telefone do usuário logado
+             final userName = auth.user?['nome'];
+             final userPhone = auth.user?['telefone'];
+             _pedidos = pedidos.where((p) => 
+                p.nomeCliente == userName || p.telefone == userPhone
+             ).toList();
+          }
           _isLoading = false;
         });
       }

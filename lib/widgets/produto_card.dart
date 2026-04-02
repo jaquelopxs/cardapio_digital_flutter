@@ -7,16 +7,21 @@ import '../core/constants/app_colors.dart';
 class ProdutoCard extends StatelessWidget {
   final Produto produto;
   final VoidCallback onAdicionar;
+  final VoidCallback? onEditar;
+  final VoidCallback? onExcluir;
 
   const ProdutoCard({
     super.key,
     required this.produto,
     required this.onAdicionar,
+    this.onEditar,
+    this.onExcluir,
   });
 
   @override
   Widget build(BuildContext context) {
     final currencyFormatter = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
+    final isAdmin = onEditar != null && onExcluir != null;
 
     return Card(
       elevation: 1,
@@ -33,11 +38,32 @@ class ProdutoCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    produto.nome,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          produto.nome,
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (isAdmin) ...[
+                        IconButton(
+                          icon: const Icon(Icons.edit_outlined, size: 20, color: Colors.blue),
+                          onPressed: onEditar,
+                          constraints: const BoxConstraints(),
+                          padding: const EdgeInsets.all(4),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline, size: 20, color: Colors.red),
+                          onPressed: onExcluir,
+                          constraints: const BoxConstraints(),
+                          padding: const EdgeInsets.all(4),
+                        ),
+                      ],
+                    ],
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -54,12 +80,13 @@ class ProdutoCard extends StatelessWidget {
                         currencyFormatter.format(produto.preco),
                         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
                       ),
-                      IconButton(
-                        onPressed: onAdicionar,
-                        icon: const Icon(Icons.add_circle, color: AppColors.primary, size: 28),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
+                      if (!isAdmin)
+                        IconButton(
+                          onPressed: onAdicionar,
+                          icon: const Icon(Icons.add_circle, color: AppColors.primary, size: 28),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
                     ],
                   ),
                 ],

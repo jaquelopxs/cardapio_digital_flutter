@@ -167,7 +167,16 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 20),
+                
+                // Botão Sobre (Discreto)
+                Center(
+                  child: TextButton(
+                    onPressed: () => Navigator.pushNamed(context, '/sobre'),
+                    child: const Text('sobre o aplicativo', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                  ),
+                ),
+                const SizedBox(height: 20),
               ],
             ),
           ),
@@ -176,3 +185,4 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+

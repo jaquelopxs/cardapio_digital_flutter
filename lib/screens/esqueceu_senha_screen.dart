@@ -12,6 +12,9 @@ class EsqueceuSenhaScreen extends StatefulWidget {
 
 class _EsqueceuSenhaScreenState extends State<EsqueceuSenhaScreen> {
   final _emailController = TextEditingController();
+  final _codeController = TextEditingController();
+  final _newPasswordController = TextEditingController();
+  bool _codeSent = false;
 
   bool _isEmailValid(String email) {
     final emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
@@ -22,16 +25,7 @@ class _EsqueceuSenhaScreenState extends State<EsqueceuSenhaScreen> {
     final email = _emailController.text.trim();
 
     if (email.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, informe seu e-mail.')),
-      );
-      return;
-    }
-
-    if (!_isEmailValid(email)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor, insira um e-mail válido.')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Por favor, informe seu e-mail.')));
       return;
     }
 
@@ -39,14 +33,32 @@ class _EsqueceuSenhaScreenState extends State<EsqueceuSenhaScreen> {
     final result = await auth.forgotPassword(email);
 
     if (result.containsKey('message')) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result['message'])),
-      );
+      setState(() => _codeSent = true);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result['message'])));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro: ${result['error'] ?? 'Falha na solicitação'}')));
+    }
+  }
+
+  Future<void> _handleVerifyAndReset() async {
+    final code = _codeController.text.trim();
+    final newPass = _newPasswordController.text.trim();
+
+    if (code.isEmpty || newPass.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Preencha o código e a nova senha.')));
+      return;
+    }
+
+    // Aqui você chamaria o ApiService().resetPassword() se existir, 
+    // ou usaria o verifyCode se o backend já estiver pronto para resetar.
+    final auth = context.read<AuthProvider>();
+    final result = await auth.verifyCode(_emailController.text.trim(), code);
+
+    if (result.containsKey('message')) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Senha redefinida com sucesso!')));
       Navigator.pop(context);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro: ${result['error'] ?? 'Falha na solicitação'}')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro: ${result['error'] ?? 'Código inválido'}')));
     }
   }
 
@@ -70,26 +82,42 @@ class _EsqueceuSenhaScreenState extends State<EsqueceuSenhaScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text('Recuperar Senha', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                  Text(_codeSent ? 'Redefinir Senha' : 'Recuperar Senha', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 16),
-                  const Text(
-                    'Informe seu e-mail e enviaremos as instruções para você.',
+                  Text(
+                    _codeSent 
+                      ? 'Digite o código enviado para seu e-mail e sua nova senha.' 
+                      : 'Informe seu e-mail e enviaremos as instruções para você.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey),
+                    style: const TextStyle(color: Colors.grey),
                   ),
                   const SizedBox(height: 32),
-                  TextField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(labelText: 'E-mail', border: OutlineInputBorder()),
-                  ),
+                  if (!_codeSent)
+                    TextField(
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: const InputDecoration(labelText: 'E-mail', border: OutlineInputBorder()),
+                    )
+                  else ...[
+                    TextField(
+                      controller: _codeController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(labelText: 'Código de Verificação', border: OutlineInputBorder()),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _newPasswordController,
+                      obscureText: true,
+                      decoration: const InputDecoration(labelText: 'Nova Senha', border: OutlineInputBorder()),
+                    ),
+                  ],
                   const SizedBox(height: 32),
                   Consumer<AuthProvider>(
                     builder: (context, auth, child) {
                       return SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: auth.isLoading ? null : _handleForgotPassword,
+                          onPressed: auth.isLoading ? null : (_codeSent ? _handleVerifyAndReset : _handleForgotPassword),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,
@@ -98,7 +126,7 @@ class _EsqueceuSenhaScreenState extends State<EsqueceuSenhaScreen> {
                           ),
                           child: auth.isLoading 
                             ? const CircularProgressIndicator(color: Colors.white) 
-                            : const Text('Enviar Instruções', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            : Text(_codeSent ? 'Redefinir Senha' : 'Enviar Instruções', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                         ),
                       );
                     },
