@@ -5,22 +5,20 @@ import '../models/produto.dart';
 import '../models/pedido.dart';
 
 class ApiService {
-<<<<<<< HEAD
-  // ⚠️ TROQUE pela URL do Render após o deploy do backend
-  // Exemplo: 'https://cardapio-backend.onrender.com'
-  static const String _prodUrl = 'https://SUA-URL-AQUI.onrender.com';
 
-  static String get baseUrl {
-    if (kIsWeb && !_prodUrl.contains('SUA-URL-AQUI')) {
-      return _prodUrl;
-    }
-    if (kIsWeb) {
-      return 'http://localhost:3000';
-    }
-    return 'http://10.0.2.2:3000';
-  }
-=======
-  // No navegador usar localhost, no Android usar 10.0.2.2
+  // static const String _prodUrl = 'https://SUA-URL-AQUI.onrender.com';
+
+  // // static String get baseUrl {
+  // //   if (kIsWeb && !_prodUrl.contains('SUA-URL-AQUI')) {
+  // //     return _prodUrl;
+  // //   }
+  // //   if (kIsWeb) {
+  // //     return 'http://localhost:3000';
+  // //   }
+  // //   return 'http://10.0.2.2:3000';
+  // // }
+
+
   static String get baseUrl {
     if (kIsWeb) {
       return 'http://localhost:3000';
@@ -28,7 +26,7 @@ class ApiService {
     // Para mobile (Android) usamos 10.0.2.2, para outros localhost
     return 'http://10.0.2.2:3000';
   } 
->>>>>>> 72bbee81325504357f9041a0baafdc846eaa2c26
+
 
   // --- PRODUTOS ---
 
@@ -188,7 +186,7 @@ class ApiService {
       return {'error': 'Erro ao solicitar recuperação de senha'};
     }
   }
-<<<<<<< HEAD
+
 
   Future<Map<String, dynamic>> resetPassword(String email, String codigo, String novaSenha) async {
     try {
@@ -202,6 +200,4 @@ class ApiService {
       return {'error': 'Erro ao redefinir senha'};
     }
   }
-=======
->>>>>>> 72bbee81325504357f9041a0baafdc846eaa2c26
 }

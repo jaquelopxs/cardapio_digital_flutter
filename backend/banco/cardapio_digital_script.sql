@@ -1,43 +1,9 @@
-CREATE DATABASE cardapio_digital;
--- ======== TABELA PRODUTOS ===============
-CREATE TABLE produtos (
-  id SERIAL PRIMARY KEY,
-  nome VARCHAR(100) NOT NULL,
-  descricao TEXT,
-  imagem TEXT,
-  preco NUMERIC(10,2) NOT NULL,
-  categoria VARCHAR(50)
-);
+-- Script de Criação do Banco de Dados - Cardápio Digital
 
--- ======== TABELA PEDIDOS ===============
-CREATE TABLE pedidos (
-  id SERIAL PRIMARY KEY,
-  data_pedido TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  status VARCHAR(20) DEFAULT 'pendente',   -- pendente, em_preparo, entregue, cancelado
-  total NUMERIC(10,2) DEFAULT 0,
-  nome_cliente VARCHAR(100) NOT NULL,
-  telefone VARCHAR(20),
-  forma_pagamento VARCHAR(50) NOT NULL
-);
+-- Criação do banco (opcional, dependendo do ambiente)
+-- CREATE DATABASE cardapio_digital;
 
--- ======== TABELA ITENS DO PEDIDO ===============
-CREATE TABLE itens_pedido (
-  id SERIAL PRIMARY KEY,
-  pedido_id INTEGER REFERENCES pedidos(id) ON DELETE CASCADE,
-  produto_id INTEGER REFERENCES produtos(id),
-  quantidade INTEGER NOT NULL,
-  subtotal NUMERIC(10,2) NOT NULL
-);
-
-CREATE TABLE admin (
-  id SERIAL PRIMARY KEY,
-  nome VARCHAR(100),
-  email VARCHAR(150) UNIQUE NOT NULL,
-  telefone VARCHAR(20),
-  senha VARCHAR(255) NOT NULL
-<<<<<<< HEAD
-);
--- Tabela de usuários clientes (RF001, RF002, RF003)
+-- ======== TABELA USUÁRIOS (RF001, RF002, RF003) ===============
 CREATE TABLE IF NOT EXISTS usuarios (
   id SERIAL PRIMARY KEY,
   nome VARCHAR(255) NOT NULL,
@@ -49,6 +15,38 @@ CREATE TABLE IF NOT EXISTS usuarios (
   is_admin BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP DEFAULT NOW()
 );
-=======
+
+-- ======== TABELA PRODUTOS (RF005) ===============
+CREATE TABLE IF NOT EXISTS produtos (
+  id SERIAL PRIMARY KEY,
+  nome VARCHAR(100) NOT NULL,
+  descricao TEXT,
+  imagem TEXT,
+  preco NUMERIC(10,2) NOT NULL,
+  categoria VARCHAR(50) NOT NULL -- bebidas, pratos principais, sobremesas, etc.
 );
->>>>>>> 72bbee81325504357f9041a0baafdc846eaa2c26
+
+-- ======== TABELA PEDIDOS (RF009) ===============
+CREATE TABLE IF NOT EXISTS pedidos (
+  id SERIAL PRIMARY KEY,
+  data_pedido TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  status VARCHAR(20) DEFAULT 'pendente', -- pendente, em_preparo, entregue, cancelado
+  total NUMERIC(10,2) DEFAULT 0,
+  nome_cliente VARCHAR(100) NOT NULL,
+  telefone VARCHAR(20),
+  forma_pagamento VARCHAR(50) NOT NULL
+);
+
+-- ======== TABELA ITENS DO PEDIDO (RF006) ===============
+CREATE TABLE IF NOT EXISTS itens_pedido (
+  id SERIAL PRIMARY KEY,
+  pedido_id INTEGER REFERENCES pedidos(id) ON DELETE CASCADE,
+  produto_id INTEGER REFERENCES produtos(id),
+  quantidade INTEGER NOT NULL,
+  subtotal NUMERIC(10,2) NOT NULL
+);
+
+-- Inserção de Admin Inicial (Opcional)
+-- Senha: administrador120 (Hashed)
+-- INSERT INTO usuarios (nome, email, telefone, senha, is_verificado, is_admin) 
+-- VALUES ('Admin', 'admin@admin.com', '00000000', '$2b$10$YourHashedPasswordHere', true, true);

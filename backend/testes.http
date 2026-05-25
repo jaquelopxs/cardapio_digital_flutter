@@ -1,1 +1,23 @@
-GET http://localhost:3000/cardapio
+### Listar Produtos
+GET http://localhost:3000/produtos
+
+### Registro de Usuário
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+  "nome": "João Teste",
+  "email": "joao@teste.com",
+  "telefone": "11999999999",
+  "senha": "senha123",
+  "confirmacaoSenha": "senha123"
+}
+
+### Login
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "email": "joao@teste.com",
+  "senha": "senha123"
+}

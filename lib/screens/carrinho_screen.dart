@@ -5,7 +5,6 @@ import '../providers/carrinho_provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
 import '../core/constants/app_colors.dart';
-import '../widgets/custom_navbar.dart';
 
 class CarrinhoScreen extends StatefulWidget {
   const CarrinhoScreen({super.key});
@@ -82,17 +81,10 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
 
     try {
       final result = await _apiService.finalizarPedido(dadosPedido);
+      
+      if (result.containsKey('id') || result.containsKey('pedido_id')) {
+        final pedidoId = result['id'] ?? result['pedido_id'];
 
-<<<<<<< HEAD
-      // Backend retorna o objeto completo do pedido com campo 'id'
-      // ou pode retornar 'pedido_id' dependendo da versão — tratamos os dois
-      final pedidoId = result['id'] ?? result['pedido_id'];
-
-      if (pedidoId != null && !result.containsKey('error')) {
-=======
-      if (result.containsKey('id')) {
-        final pedidoId = result['id'];
->>>>>>> 72bbee81325504357f9041a0baafdc846eaa2c26
         carrinho.limpar();
         
         if (mounted) {
@@ -101,17 +93,12 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
             barrierDismissible: false,
             builder: (context) => AlertDialog(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-<<<<<<< HEAD
-              title: const Text('Pedido Realizado! 🎉'),
-=======
               title: const Text('Pedido Realizado!'),
->>>>>>> 72bbee81325504357f9041a0baafdc846eaa2c26
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Icon(Icons.check_circle, color: Colors.green, size: 64),
                   const SizedBox(height: 16),
-<<<<<<< HEAD
                   Text(
                     'Seu pedido #$pedidoId foi enviado com sucesso!',
                     textAlign: TextAlign.center,
@@ -122,28 +109,16 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
                     textAlign: TextAlign.center,
                     style: TextStyle(color: Colors.grey, fontSize: 13),
                   ),
-=======
-                  Text('Seu pedido #$pedidoId foi enviado com sucesso.'),
->>>>>>> 72bbee81325504357f9041a0baafdc846eaa2c26
                 ],
               ),
               actions: [
                 ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).pop();
-<<<<<<< HEAD
                     Navigator.pushReplacementNamed(context, '/main');
                   },
                   style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
                   child: const Text('Ver meus pedidos', style: TextStyle(color: Colors.white)),
-=======
-                    // No MainScreen, mudar para a aba de pedidos
-                    // Por enquanto vamos apenas navegar se for fora da MainScreen
-                    Navigator.pushReplacementNamed(context, '/main');
-                  },
-                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-                  child: const Text('OK', style: TextStyle(color: Colors.white)),
->>>>>>> 72bbee81325504357f9041a0baafdc846eaa2c26
                 ),
               ],
             ),
@@ -152,15 +127,11 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-<<<<<<< HEAD
             SnackBar(
               content: Text('Erro: ${result['error'] ?? 'Erro desconhecido'}'),
               behavior: SnackBarBehavior.floating,
               backgroundColor: Colors.red,
             ),
-=======
-            SnackBar(content: Text('Erro: ${result['error'] ?? 'Erro desconhecido'}'), behavior: SnackBarBehavior.floating),
->>>>>>> 72bbee81325504357f9041a0baafdc846eaa2c26
           );
         }
       }
@@ -219,7 +190,7 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
                             _buildTextField('Endereço ou Mesa', _enderecoController, 'Rua, número e bairro ou nº da mesa', Icons.location_on_outlined),
                             const SizedBox(height: 16),
                             DropdownButtonFormField<String>(
-                              value: _formaPagamento,
+                              initialValue: _formaPagamento,
                               decoration: InputDecoration(
                                 labelText: 'Forma de Pagamento', 
                                 prefixIcon: const Icon(Icons.payment_outlined),

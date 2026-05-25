@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:core';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
@@ -29,6 +30,7 @@ class AuthProvider with ChangeNotifier {
       _user = json.decode(userJson);
     }
     notifyListeners();
+    return null;
   }
 
   Future<Map<String, dynamic>> login(String email, String senha) async {
@@ -85,7 +87,7 @@ class AuthProvider with ChangeNotifier {
     return result;
   }
 
-<<<<<<< HEAD
+
   Future<Map<String, dynamic>> resetPassword(String email, String codigo, String novaSenha) async {
     _isLoading = true;
     notifyListeners();
@@ -97,8 +99,6 @@ class AuthProvider with ChangeNotifier {
     return result;
   }
 
-=======
->>>>>>> 72bbee81325504357f9041a0baafdc846eaa2c26
   Future<void> logout() async {
     _token = null;
     _user = null;

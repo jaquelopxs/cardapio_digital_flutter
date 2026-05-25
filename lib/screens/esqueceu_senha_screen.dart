@@ -14,13 +14,18 @@ class _EsqueceuSenhaScreenState extends State<EsqueceuSenhaScreen> {
   final _emailController = TextEditingController();
   final _codeController = TextEditingController();
   final _newPasswordController = TextEditingController();
-<<<<<<< HEAD
   final _confirmPasswordController = TextEditingController();
   bool _codeSent = false;
   bool _isObscure = true;
-=======
-  bool _codeSent = false;
->>>>>>> 72bbee81325504357f9041a0baafdc846eaa2c26
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _codeController.dispose();
+    _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
 
   bool _isEmailValid(String email) {
     final emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
@@ -31,16 +36,12 @@ class _EsqueceuSenhaScreenState extends State<EsqueceuSenhaScreen> {
     final email = _emailController.text.trim();
 
     if (email.isEmpty) {
-<<<<<<< HEAD
       _showSnack('Por favor, informe seu e-mail.', isError: true);
       return;
     }
 
     if (!_isEmailValid(email)) {
       _showSnack('Formato de e-mail inválido.', isError: true);
-=======
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Por favor, informe seu e-mail.')));
->>>>>>> 72bbee81325504357f9041a0baafdc846eaa2c26
       return;
     }
 
@@ -49,7 +50,6 @@ class _EsqueceuSenhaScreenState extends State<EsqueceuSenhaScreen> {
 
     if (result.containsKey('message')) {
       setState(() => _codeSent = true);
-<<<<<<< HEAD
       _showSnack(result['message']);
     } else {
       _showSnack(result['error'] ?? 'Falha na solicitação.', isError: true);
@@ -101,36 +101,6 @@ class _EsqueceuSenhaScreenState extends State<EsqueceuSenhaScreen> {
     );
   }
 
-=======
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result['message'])));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro: ${result['error'] ?? 'Falha na solicitação'}')));
-    }
-  }
-
-  Future<void> _handleVerifyAndReset() async {
-    final code = _codeController.text.trim();
-    final newPass = _newPasswordController.text.trim();
-
-    if (code.isEmpty || newPass.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Preencha o código e a nova senha.')));
-      return;
-    }
-
-    // Aqui você chamaria o ApiService().resetPassword() se existir, 
-    // ou usaria o verifyCode se o backend já estiver pronto para resetar.
-    final auth = context.read<AuthProvider>();
-    final result = await auth.verifyCode(_emailController.text.trim(), code);
-
-    if (result.containsKey('message')) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Senha redefinida com sucesso!')));
-      Navigator.pop(context);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro: ${result['error'] ?? 'Código inválido'}')));
-    }
-  }
-
->>>>>>> 72bbee81325504357f9041a0baafdc846eaa2c26
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -146,18 +116,13 @@ class _EsqueceuSenhaScreenState extends State<EsqueceuSenhaScreen> {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
-<<<<<<< HEAD
                 boxShadow: const [
                   BoxShadow(color: Colors.black26, blurRadius: 40, offset: Offset(0, 20))
                 ],
-=======
-                boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 40, offset: Offset(0, 20))],
->>>>>>> 72bbee81325504357f9041a0baafdc846eaa2c26
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-<<<<<<< HEAD
                   Icon(
                     _codeSent ? Icons.lock_reset : Icons.lock_outline,
                     size: 56,
@@ -177,19 +142,10 @@ class _EsqueceuSenhaScreenState extends State<EsqueceuSenhaScreen> {
                     _codeSent
                         ? 'Digite o código enviado para seu e-mail e escolha uma nova senha.'
                         : 'Informe seu e-mail e enviaremos um código de verificação.',
-=======
-                  Text(_codeSent ? 'Redefinir Senha' : 'Recuperar Senha', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 16),
-                  Text(
-                    _codeSent 
-                      ? 'Digite o código enviado para seu e-mail e sua nova senha.' 
-                      : 'Informe seu e-mail e enviaremos as instruções para você.',
->>>>>>> 72bbee81325504357f9041a0baafdc846eaa2c26
                     textAlign: TextAlign.center,
                     style: const TextStyle(color: Colors.grey),
                   ),
                   const SizedBox(height: 32),
-<<<<<<< HEAD
 
                   // Etapa 1: E-mail
                   TextField(
@@ -223,24 +179,10 @@ class _EsqueceuSenhaScreenState extends State<EsqueceuSenhaScreen> {
                         counterText: '',
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-=======
-                  if (!_codeSent)
-                    TextField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(labelText: 'E-mail', border: OutlineInputBorder()),
-                    )
-                  else ...[
-                    TextField(
-                      controller: _codeController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'Código de Verificação', border: OutlineInputBorder()),
->>>>>>> 72bbee81325504357f9041a0baafdc846eaa2c26
                     ),
                     const SizedBox(height: 16),
                     TextField(
                       controller: _newPasswordController,
-<<<<<<< HEAD
                       obscureText: _isObscure,
                       decoration: InputDecoration(
                         labelText: 'Nova senha',
@@ -264,30 +206,19 @@ class _EsqueceuSenhaScreenState extends State<EsqueceuSenhaScreen> {
                     ),
                   ],
 
-=======
-                      obscureText: true,
-                      decoration: const InputDecoration(labelText: 'Nova Senha', border: OutlineInputBorder()),
-                    ),
-                  ],
->>>>>>> 72bbee81325504357f9041a0baafdc846eaa2c26
                   const SizedBox(height: 32),
                   Consumer<AuthProvider>(
                     builder: (context, auth, child) {
                       return SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-<<<<<<< HEAD
                           onPressed: auth.isLoading
                               ? null
                               : (_codeSent ? _handleResetPassword : _handleForgotPassword),
-=======
-                          onPressed: auth.isLoading ? null : (_codeSent ? _handleVerifyAndReset : _handleForgotPassword),
->>>>>>> 72bbee81325504357f9041a0baafdc846eaa2c26
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.all(16),
-<<<<<<< HEAD
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12)),
                           ),
@@ -303,18 +234,10 @@ class _EsqueceuSenhaScreenState extends State<EsqueceuSenhaScreen> {
                                   style: const TextStyle(
                                       fontSize: 16, fontWeight: FontWeight.bold),
                                 ),
-=======
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                          ),
-                          child: auth.isLoading 
-                            ? const CircularProgressIndicator(color: Colors.white) 
-                            : Text(_codeSent ? 'Redefinir Senha' : 'Enviar Instruções', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
->>>>>>> 72bbee81325504357f9041a0baafdc846eaa2c26
                         ),
                       );
                     },
                   ),
-<<<<<<< HEAD
 
                   if (_codeSent)
                     TextButton(
@@ -333,12 +256,6 @@ class _EsqueceuSenhaScreenState extends State<EsqueceuSenhaScreen> {
                     onPressed: () => Navigator.pop(context),
                     child: const Text('Voltar ao login',
                         style: TextStyle(color: Colors.grey)),
-=======
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Voltar ao login', style: TextStyle(color: AppColors.primary)),
->>>>>>> 72bbee81325504357f9041a0baafdc846eaa2c26
                   ),
                 ],
               ),
