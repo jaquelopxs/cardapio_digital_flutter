@@ -139,15 +139,22 @@ export const login = async (req, res) => {
 };
 
 /**
+<<<<<<< HEAD
  * RF003: ESQUECEU A SENHA — envia código por e-mail
+=======
+ * RF003: ESQUECEU A SENHA
+>>>>>>> 72bbee81325504357f9041a0baafdc846eaa2c26
  */
 export const forgotPassword = async (req, res) => {
   const { email } = req.body;
 
+<<<<<<< HEAD
   if (!email || !isEmailValid(email)) {
     return res.status(400).json({ error: 'Informe um e-mail válido.' });
   }
 
+=======
+>>>>>>> 72bbee81325504357f9041a0baafdc846eaa2c26
   try {
     const result = await pool.query('SELECT nome FROM usuarios WHERE email = $1', [email]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'E-mail não cadastrado.' });
@@ -155,6 +162,7 @@ export const forgotPassword = async (req, res) => {
     const resetCodigo = generatePinCode();
     await pool.query('UPDATE usuarios SET verificacao_codigo = $1 WHERE email = $2', [resetCodigo, email]);
 
+<<<<<<< HEAD
     console.log(`\n>>> CÓDIGO DE RESET PARA ${email}: ${resetCodigo}\n`);
 
     try {
@@ -171,11 +179,20 @@ export const forgotPassword = async (req, res) => {
     } catch (mailError) {
       console.error('Erro ao enviar e-mail:', mailError);
     }
+=======
+    await transporter.sendMail({
+      from: `"Empório Sophia" <${process.env.MAIL_USER}>`,
+      to: email,
+      subject: 'Recuperação de Senha',
+      html: `<p>Olá, ${result.rows[0].nome}. Seu código para redefinir a senha é: <b>${resetCodigo}</b></p>`
+    });
+>>>>>>> 72bbee81325504357f9041a0baafdc846eaa2c26
 
     res.json({ message: 'Código enviado ao seu e-mail.' });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao processar solicitação.' });
   }
+<<<<<<< HEAD
 };
 
 /**
@@ -214,4 +231,6 @@ export const resetPassword = async (req, res) => {
     console.error('Erro ao redefinir senha:', error);
     res.status(500).json({ error: 'Erro ao redefinir senha.' });
   }
+=======
+>>>>>>> 72bbee81325504357f9041a0baafdc846eaa2c26
 };

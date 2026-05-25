@@ -35,6 +35,7 @@ CREATE TABLE admin (
   email VARCHAR(150) UNIQUE NOT NULL,
   telefone VARCHAR(20),
   senha VARCHAR(255) NOT NULL
+<<<<<<< HEAD
 );
 -- Tabela de usuários clientes (RF001, RF002, RF003)
 CREATE TABLE IF NOT EXISTS usuarios (
@@ -48,3 +49,6 @@ CREATE TABLE IF NOT EXISTS usuarios (
   is_admin BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP DEFAULT NOW()
 );
+=======
+);
+>>>>>>> 72bbee81325504357f9041a0baafdc846eaa2c26

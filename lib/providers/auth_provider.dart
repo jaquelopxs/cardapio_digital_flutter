@@ -85,6 +85,7 @@ class AuthProvider with ChangeNotifier {
     return result;
   }
 
+<<<<<<< HEAD
   Future<Map<String, dynamic>> resetPassword(String email, String codigo, String novaSenha) async {
     _isLoading = true;
     notifyListeners();
@@ -96,6 +97,8 @@ class AuthProvider with ChangeNotifier {
     return result;
   }
 
+=======
+>>>>>>> 72bbee81325504357f9041a0baafdc846eaa2c26
   Future<void> logout() async {
     _token = null;
     _user = null;
