@@ -39,8 +39,10 @@ export const store = async (req, res) => {
     io.emit('novoPedido', pedidoResult.rows[0]);
 
     res.status(201).json({
+      id: pedidoId,
+      pedido_id: pedidoId,
       message: 'Pedido realizado com sucesso!',
-      pedido: pedidoResult.rows[0]
+      ...pedidoResult.rows[0]
     });
   } catch (error) {
     await client.query('ROLLBACK');
@@ -97,6 +99,7 @@ export const updateStatus = async (req, res) => {
     
     // Notificar mudança de status via Socket.io
     io.emit('statusAlterado', result.rows[0]);
+    console.log(`Status do pedido ${id} alterado para: ${status}`);
     
     res.json(result.rows[0]);
   } catch (error) {

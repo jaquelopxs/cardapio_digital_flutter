@@ -23,9 +23,6 @@ SET default_tablespace = '';
 
 SET default_table_access_method = heap;
 
---
--- Name: admin; Type: TABLE; Schema: public; Owner: postgres
---
 
 CREATE TABLE public.admin (
     id integer NOT NULL,

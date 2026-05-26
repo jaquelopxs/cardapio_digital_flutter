@@ -76,22 +76,34 @@ class ApiService {
 
   // --- PEDIDOS ---
 
-  Future<Map<String, dynamic>> finalizarPedido(Map<String, dynamic> dadosPedido) async {
+  Future<Map<String, dynamic>> finalizarPedido(Map<String, dynamic> dadosPedido, String token) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/pedidos'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
         body: json.encode(dadosPedido),
       );
-      return json.decode(response.body);
+      
+      // Se não for JSON (erro do servidor por exemplo), pode dar erro no decode
+      try {
+        return json.decode(response.body);
+      } catch (_) {
+        return {'error': 'Erro na resposta do servidor: ${response.statusCode}'};
+      }
     } catch (e) {
       return {'error': 'Erro de conexão com o servidor'};
     }
   }
 
-  Future<Pedido?> getPedidoById(int id) async {
+  Future<Pedido?> getPedidoById(int id, String token) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/pedidos/$id'));
+      final response = await http.get(
+        Uri.parse('$baseUrl/pedidos/$id'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
       if (response.statusCode == 200) {
         return Pedido.fromJson(json.decode(response.body));
       }

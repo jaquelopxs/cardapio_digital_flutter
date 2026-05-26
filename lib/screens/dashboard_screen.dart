@@ -38,13 +38,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _mudarStatus(int pedidoId, String novoStatus) async {
     final auth = Provider.of<AuthProvider>(context, listen: false);
+    setState(() => _isLoading = true);
+    
     final sucesso = await _apiService.atualizarStatusPedido(pedidoId, novoStatus, auth.token!);
     
     if (sucesso) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Pedido #$pedidoId atualizado para: $novoStatus')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Pedido #$pedidoId atualizado para: ${novoStatus.toUpperCase()}'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
       _carregarTodosPedidos(); // Recarrega a lista
+    } else {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Erro ao atualizar status do pedido.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -106,9 +123,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: [
-                                  if (pedido.status == 'recebido')
-                                    Expanded(child: _statusButton(pedido.id, 'em_preparo', 'Começar Preparo', Colors.orange)),
-                                  if (pedido.status == 'em_preparo')
+                                  if (pedido.status == 'pendente' || pedido.status == 'recebido')
+                                    Expanded(child: _statusButton(pedido.id, 'em preparo', 'Começar Preparo', Colors.orange)),
+                                  if (pedido.status == 'em preparo')
                                     Expanded(child: _statusButton(pedido.id, 'pronto', 'Pedido Pronto', Colors.green)),
                                   if (pedido.status == 'pronto')
                                     Expanded(child: _statusButton(pedido.id, 'entregue', 'Confirmar Entrega', Colors.blue)),
@@ -149,6 +166,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Color _corStatus(String status) {
     switch (status) {
       case 'recebido': return Colors.blue;
+      case 'em preparo':
       case 'em_preparo': return Colors.orange;
       case 'pronto': return Colors.green;
       case 'entregue': return Colors.grey;

@@ -6,6 +6,7 @@ import { pool } from '../config/db.js';
  */
 export const list = async (req, res) => {
   const { categoria } = req.query;
+  console.log(`Buscando produtos. Categoria: ${categoria || 'Todas'}`);
   try {
     let query = 'SELECT * FROM produtos';
     let values = [];
@@ -31,7 +32,7 @@ export const list = async (req, res) => {
 export const store = async (req, res) => {
   const { nome, descricao, imagem, preco, categoria } = req.body;
   
-  if (!nome || !preco || !categoria) {
+  if (!nome || preco === undefined || preco === null || !categoria) {
     return res.status(400).json({ error: 'Nome, preço e categoria são obrigatórios.' });
   }
 
@@ -53,6 +54,11 @@ export const store = async (req, res) => {
 export const update = async (req, res) => {
   const { id } = req.params;
   const { nome, descricao, imagem, preco, categoria } = req.body;
+
+  if (!nome || preco === undefined || preco === null || !categoria) {
+    return res.status(400).json({ error: 'Nome, preço e categoria são obrigatórios.' });
+  }
+
   try {
     const result = await pool.query(
       'UPDATE produtos SET nome = $1, descricao = $2, imagem = $3, preco = $4, categoria = $5 WHERE id = $6 RETURNING *',

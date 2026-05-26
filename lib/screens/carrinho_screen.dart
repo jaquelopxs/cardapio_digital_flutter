@@ -80,10 +80,16 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
     };
 
     try {
-      final result = await _apiService.finalizarPedido(dadosPedido);
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      final result = await _apiService.finalizarPedido(dadosPedido, auth.token ?? '');
       
-      if (result.containsKey('id') || result.containsKey('pedido_id')) {
-        final pedidoId = result['id'] ?? result['pedido_id'];
+      // Checar se o pedido foi criado com sucesso (várias formas dependendo do retorno da API)
+      final bool sucesso = result.containsKey('id') || 
+                           result.containsKey('pedido_id') || 
+                           result.containsKey('pedido');
+      
+      if (sucesso) {
+        final pedidoId = result['id'] ?? result['pedido_id'] ?? (result['pedido'] != null ? result['pedido']['id'] : '...');
 
         carrinho.limpar();
         

@@ -15,7 +15,7 @@ class AuthProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isAdmin {
     if (_user == null) return false;
-    return _user!['email'] == 'emporiosophia82@gmail.com';
+    return _user!['is_admin'] == true;
   }
 
   AuthProvider() {

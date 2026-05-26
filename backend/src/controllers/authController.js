@@ -112,17 +112,23 @@ export const login = async (req, res) => {
     const result = await pool.query('SELECT * FROM usuarios WHERE email = $1', [email]);
     const user = result.rows[0];
 
-    if (!user) return res.status(401).json({ error: 'Usuário não encontrado.' });
+    if (!user) {
+      console.log(`Login falhou: Usuário ${email} não encontrado.`);
+      return res.status(401).json({ error: 'Usuário não encontrado.' });
+    }
 
     if (!user.is_verificado) {
       return res.status(401).json({ error: 'Conta não verificada. Verifique seu e-mail.' });
     }
 
     const senhaCorreta = await bcrypt.compare(senha, user.senha);
-    if (!senhaCorreta) return res.status(401).json({ error: 'Senha incorreta.' });
+    if (!senhaCorreta) {
+      console.log(`Login falhou: Senha incorreta para ${email}.`);
+      return res.status(401).json({ error: 'Senha incorreta.' });
+    }
 
     const token = jwt.sign(
-      { id: user.id, is_admin: user.is_admin || false }, 
+      { id: user.id, is_admin: user.is_admin === true || user.is_admin === 'true' }, 
       process.env.JWT_SECRET, 
       { expiresIn: '1d' }
     );
@@ -134,10 +140,11 @@ export const login = async (req, res) => {
         email: user.email, 
         nome: user.nome, 
         telefone: user.telefone,
-        is_admin: user.is_admin || false 
+        is_admin: user.is_admin === true || user.is_admin === 'true'
       } 
     });
   } catch (error) {
+    console.error('Erro no login:', error);
     res.status(500).json({ error: 'Erro interno no servidor.' });
   }
 };

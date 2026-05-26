@@ -65,6 +65,7 @@ class _StatusPedidoScreenState extends State<StatusPedidoScreen> {
   String _formatarStatus(String status) {
     switch (status) {
       case 'recebido': return 'Pedido Recebido';
+      case 'em preparo': 
       case 'em_preparo': return 'Em Preparo';
       case 'pronto': return 'Pronto para Entrega';
       case 'entregue': return 'Entregue';
@@ -75,6 +76,7 @@ class _StatusPedidoScreenState extends State<StatusPedidoScreen> {
   Color _corStatus(String status) {
     switch (status) {
       case 'recebido': return Colors.blue;
+      case 'em preparo':
       case 'em_preparo': return Colors.orange;
       case 'pronto': return Colors.green;
       case 'entregue': return Colors.grey;

@@ -30,6 +30,12 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Request Logger
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  next();
+});
+
 // Routes implementation
 app.use("/auth", authRoutes);
 app.use("/produtos", produtosRoutes);
