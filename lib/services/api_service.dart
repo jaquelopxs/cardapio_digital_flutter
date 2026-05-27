@@ -6,26 +6,11 @@ import '../models/pedido.dart';
 
 class ApiService {
 
-  // static const String _prodUrl = 'https://SUA-URL-AQUI.onrender.com';
-
-  // // static String get baseUrl {
-  // //   if (kIsWeb && !_prodUrl.contains('SUA-URL-AQUI')) {
-  // //     return _prodUrl;
-  // //   }
-  // //   if (kIsWeb) {
-  // //     return 'http://localhost:3000';
-  // //   }
-  // //   return 'http://10.0.2.2:3000';
-  // // }
-
+  static const String _prodUrl = 'https://cardapio-digital-flutter.onrender.com';
 
   static String get baseUrl {
-    if (kIsWeb) {
-      return 'http://localhost:3000';
-    }
-    // Para mobile (Android) usamos 10.0.2.2, para outros localhost
-    return 'http://10.0.2.2:3000';
-  } 
+    return _prodUrl;
+  }
 
 
   // --- PRODUTOS ---
