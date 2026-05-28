@@ -100,7 +100,7 @@ ALTER SEQUENCE public.itens_pedido_id_seq OWNED BY public.itens_pedido.id;
 CREATE TABLE public.pedidos (
     id integer NOT NULL,
     data_pedido timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
-    status character varying(20) DEFAULT 'pendente'::character varying,
+    status character varying(20) DEFAULT CAST('pendente' AS character varying),
     total numeric(10,2) DEFAULT 0,
     nome_cliente character varying(100) NOT NULL,
     telefone character varying(20),
@@ -174,28 +174,28 @@ ALTER SEQUENCE public.produtos_id_seq OWNED BY public.produtos.id;
 -- Name: admin id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.admin ALTER COLUMN id SET DEFAULT nextval('public.admin_id_seq'::regclass);
+ALTER TABLE ONLY public.admin ALTER COLUMN id SET DEFAULT nextval(CAST('public.admin_id_seq' AS regclass));
 
 
 --
 -- Name: itens_pedido id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.itens_pedido ALTER COLUMN id SET DEFAULT nextval('public.itens_pedido_id_seq'::regclass);
+ALTER TABLE ONLY public.itens_pedido ALTER COLUMN id SET DEFAULT nextval(CAST('public.itens_pedido_id_seq' AS regclass));
 
 
 --
 -- Name: pedidos id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.pedidos ALTER COLUMN id SET DEFAULT nextval('public.pedidos_id_seq'::regclass);
+ALTER TABLE ONLY public.pedidos ALTER COLUMN id SET DEFAULT nextval(CAST('public.pedidos_id_seq' AS regclass));
 
 
 --
 -- Name: produtos id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY public.produtos ALTER COLUMN id SET DEFAULT nextval('public.produtos_id_seq'::regclass);
+ALTER TABLE ONLY public.produtos ALTER COLUMN id SET DEFAULT nextval(CAST('public.produtos_id_seq' AS regclass));
 
 
 --
