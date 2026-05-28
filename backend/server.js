@@ -1,15 +1,15 @@
+import dns from "node:dns";
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
 import cors from "cors";
 import dotenv from "dotenv";
 
-// Routes
+dns.setDefaultResultOrder("ipv4first");
+dotenv.config();
 import authRoutes from "./src/routes/authRoutes.js";
 import produtosRoutes from "./src/routes/produtosRoutes.js";
 import pedidosRoutes from "./src/routes/pedidosRoutes.js";
-
-dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
@@ -62,7 +62,7 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 
-server.listen(PORT, () => {
+server.listen(PORT, "0.0.0.0", () => {
   console.log(`Servidor rodando na porta ${PORT}`);
   console.log(`Conectado ao banco: ${process.env.DB_NAME}`);
 });
