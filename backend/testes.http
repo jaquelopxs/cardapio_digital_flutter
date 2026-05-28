@@ -1,8 +1,8 @@
 ### Listar Produtos
-GET http://localhost:3000/produtos
+GET http://127.0.0.1:3000/produtos
 
 ### Registro de Usuário
-POST http://localhost:3000/auth/register
+POST http://127.0.0.1:3000/auth/register
 Content-Type: application/json
 
 {
@@ -14,7 +14,7 @@ Content-Type: application/json
 }
 
 ### Login
-POST http://localhost:3000/auth/login
+POST http://127.0.0.1:3000/auth/login
 Content-Type: application/json
 
 {
