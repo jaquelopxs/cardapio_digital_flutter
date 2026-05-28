@@ -20,8 +20,15 @@ class _CadastroScreenState extends State<CadastroScreen> {
   bool _isObscure = true;
 
   bool _isEmailValid(String email) {
-    final emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
+    // Requer @, domínio e extensão (ex: usuario@dominio.com)
+    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
     return emailRegex.hasMatch(email);
+  }
+
+  bool _isTelefoneValid(String telefone) {
+    // Padrão brasileiro: (XX) XXXXX-XXXX ou (XX) XXXX-XXXX
+    final telefoneRegex = RegExp(r'^\(\d{2}\) \d{4,5}-\d{4}$');
+    return telefoneRegex.hasMatch(telefone);
   }
 
   Future<void> _handleRegister() async {
@@ -37,15 +44,26 @@ class _CadastroScreenState extends State<CadastroScreen> {
     });
 
     if (mounted) {
-      if (result.containsKey('message') || result.containsKey('token')) {
+      if (result.containsKey('message')) {
         _showPinDialog(context, _emailController.text.trim());
-      } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erro: ${result['error'] ?? 'Falha no cadastro'}'),
+            content: Text(result['message']),
+            backgroundColor: Colors.blue,
+          ),
+        );
+      } else if (result.containsKey('error')) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro: ${result['error']}'),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 5),
           ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Erro inesperado no cadastro')),
         );
       }
     }
@@ -57,11 +75,11 @@ class _CadastroScreenState extends State<CadastroScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: const Text('Verifique seu E-mail'),
+        title: const Text('Confirmação de Cadastro'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Digite o código de 6 dígitos enviado para o seu e-mail:'),
+            Text('Enviamos um código para $email. Digite-o abaixo para ativar sua conta:'),
             const SizedBox(height: 20),
             TextField(
               controller: pinController,
@@ -69,14 +87,20 @@ class _CadastroScreenState extends State<CadastroScreen> {
               maxLength: 6,
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 24, letterSpacing: 8, fontWeight: FontWeight.bold),
-              decoration: const InputDecoration(border: OutlineInputBorder(), counterText: ""),
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(), 
+                counterText: "",
+                hintText: "000000"
+              ),
             ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Voltar')),
           ElevatedButton(
             onPressed: () async {
+              if (pinController.text.length < 6) return;
+              
               final auth = context.read<AuthProvider>();
               final res = await auth.verifyCode(email, pinController.text);
               if (res.containsKey('message')) {
@@ -84,7 +108,11 @@ class _CadastroScreenState extends State<CadastroScreen> {
                   Navigator.pop(context); // Fecha dialog
                   Navigator.pop(context); // Volta para login
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(res['message']), backgroundColor: Colors.green),
+                    SnackBar(
+                      content: Text(res['message']), 
+                      backgroundColor: Colors.green,
+                      duration: const Duration(seconds: 4),
+                    ),
                   );
                 }
               } else {
@@ -96,7 +124,7 @@ class _CadastroScreenState extends State<CadastroScreen> {
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            child: const Text('Verificar', style: TextStyle(color: Colors.white)),
+            child: const Text('Confirmar e Cadastrar', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -167,7 +195,11 @@ class _CadastroScreenState extends State<CadastroScreen> {
                     hintText: '(00) 00000-0000',
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  validator: (value) => value == null || value.isEmpty ? 'Informe seu telefone' : null,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) return 'Informe seu telefone';
+                    if (!_isTelefoneValid(value)) return 'Use o padrão (00) 00000-0000';
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 16),
                 

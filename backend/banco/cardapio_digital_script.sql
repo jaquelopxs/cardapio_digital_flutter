@@ -16,6 +16,16 @@ CREATE TABLE IF NOT EXISTS usuarios (
   created_at TIMESTAMP DEFAULT NOW()
 );
 
+-- ======== TABELA VERIFICAÇÕES PENDENTES (Para RF002) ===============
+CREATE TABLE IF NOT EXISTS verificacoes_pendentes (
+  email VARCHAR(255) PRIMARY KEY,
+  nome VARCHAR(255) NOT NULL,
+  telefone VARCHAR(20) NOT NULL,
+  senha VARCHAR(255) NOT NULL,
+  verificacao_codigo VARCHAR(10) NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
 -- ======== TABELA PRODUTOS (RF005) ===============
 CREATE TABLE IF NOT EXISTS produtos (
   id SERIAL PRIMARY KEY,

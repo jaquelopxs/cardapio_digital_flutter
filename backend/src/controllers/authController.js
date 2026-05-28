@@ -5,8 +5,15 @@ import { transporter } from '../config/mailer.js';
 
 // Utilitário para validar formato de e-mail
 const isEmailValid = (email) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  // Padrão mais rigoroso: requer @, domínio e extensão
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   return emailRegex.test(email);
+};
+
+// Utilitário para validar formato de telefone (Padrão: (00) 00000-0000)
+const isPhoneValid = (phone) => {
+  const phoneRegex = /^\(\d{2}\) \d{4,5}-\d{4}$/;
+  return phoneRegex.test(phone);
 };
 
 // Gerar código de 6 dígitos
@@ -16,6 +23,7 @@ const generatePinCode = () => {
 
 /**
  * RF002: CADASTRO DE USUÁRIO
+ * Refatorado: Salva em tabela pendente até verificação do código.
  */
 export const register = async (req, res) => {
   const { nome, email, telefone, senha, confirmacaoSenha } = req.body;
@@ -25,7 +33,11 @@ export const register = async (req, res) => {
   }
 
   if (!isEmailValid(email)) {
-    return res.status(400).json({ error: 'Formato de e-mail inválido.' });
+    return res.status(400).json({ error: 'E-mail inválido. Certifique-se de usar @ e um domínio válido.' });
+  }
+
+  if (!isPhoneValid(telefone)) {
+    return res.status(400).json({ error: 'Formato de telefone inválido. Use o padrão (00) 00000-0000.' });
   }
 
   if (senha !== confirmacaoSenha) {
@@ -33,20 +45,29 @@ export const register = async (req, res) => {
   }
 
   try {
+    // 1. Verifica se usuário já está cadastrado no sistema definitivo
     const existingUser = await pool.query('SELECT id FROM usuarios WHERE email = $1', [email]);
     if (existingUser.rows.length > 0) {
-      return res.status(400).json({ error: 'E-mail já cadastrado.' });
+      return res.status(400).json({ error: 'Este e-mail já possui uma conta ativa. Tente fazer login.' });
     }
 
     const hashedSenha = await bcrypt.hash(senha, 10);
     const verificacaoCodigo = generatePinCode();
 
-    const result = await pool.query(
-      'INSERT INTO usuarios (nome, email, telefone, senha, verificacao_codigo, is_verificado) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, nome, email',
-      [nome, email, telefone, hashedSenha, verificacaoCodigo, false]
+    // 2. Salva ou atualiza na tabela de verificações pendentes
+    // Isso evita "cadastrar" o usuário na tabela principal antes da hora.
+    await pool.query(
+      `INSERT INTO verificacoes_pendentes (email, nome, telefone, senha, verificacao_codigo) 
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (email) DO UPDATE SET 
+         nome = EXCLUDED.nome, 
+         telefone = EXCLUDED.telefone, 
+         senha = EXCLUDED.senha, 
+         verificacao_codigo = EXCLUDED.verificacao_codigo`,
+      [email, nome, telefone, hashedSenha, verificacaoCodigo]
     );
 
-    console.log(`\n>>> CÓDIGO PARA ${email}: ${verificacaoCodigo}\n`);
+    console.log(`\n>>> CÓDIGO DE ATIVAÇÃO PARA ${email}: ${verificacaoCodigo}\n`);
 
     try {
       await transporter.sendMail({
@@ -59,25 +80,27 @@ export const register = async (req, res) => {
                <p>Digite este código no aplicativo para ativar sua conta.</p>`
       });
       
-      res.status(201).json({ 
-        message: 'Cadastro realizado! Digite o código enviado ao seu e-mail.', 
+      res.status(200).json({ 
+        message: 'Código enviado! Verifique seu e-mail para concluir o cadastro.', 
         email: email
       });
     } catch (mailError) {
-      res.status(201).json({ 
-        message: 'Cadastro realizado! (Verifique o código no console do servidor)', 
+      console.error('Erro ao enviar e-mail:', mailError);
+      res.status(200).json({ 
+        message: 'Código gerado! (Verifique no console para testes)', 
         email: email,
         dev_code: verificacaoCodigo
       });
     }
   } catch (error) {
-    console.error('Erro no registro:', error);
-    res.status(500).json({ error: 'Erro ao processar cadastro.' });
+    console.error('Erro no pré-registro:', error);
+    res.status(500).json({ error: 'Erro ao processar solicitação de cadastro.' });
   }
 };
 
 /**
  * VERIFICAÇÃO DO CÓDIGO (PIN)
+ * Move o usuário da tabela pendente para a definitiva.
  */
 export const verifyCode = async (req, res) => {
   const { email, codigo } = req.body;
@@ -87,18 +110,34 @@ export const verifyCode = async (req, res) => {
   }
 
   try {
-    const result = await pool.query(
-      'UPDATE usuarios SET is_verificado = true, verificacao_codigo = NULL WHERE email = $1 AND verificacao_codigo = $2 RETURNING id',
+    // 1. Busca os dados pendentes
+    const pending = await pool.query(
+      'SELECT * FROM verificacoes_pendentes WHERE email = $1 AND verificacao_codigo = $2',
       [email, codigo]
     );
-    
-    if (result.rowCount === 0) {
-      return res.status(400).json({ error: 'Código inválido ou e-mail incorreto.' });
+
+    if (pending.rowCount === 0) {
+      return res.status(400).json({ error: 'Código inválido ou expirado.' });
     }
+
+    const user = pending.rows[0];
+
+    // 2. Insere na tabela definitiva
+    await pool.query(
+      'INSERT INTO usuarios (nome, email, telefone, senha, is_verificado) VALUES ($1, $2, $3, $4, $5)',
+      [user.nome, user.email, user.telefone, user.senha, true]
+    );
+
+    // 3. Remove dos pendentes
+    await pool.query('DELETE FROM verificacoes_pendentes WHERE email = $1', [email]);
     
-    res.json({ message: 'Conta verificada com sucesso! Faça seu login.' });
+    res.json({ message: 'Conta ativada e cadastrada com sucesso! Faça seu login.' });
   } catch (error) {
-    res.status(500).json({ error: 'Erro ao verificar código.' });
+    console.error('Erro ao verificar código:', error);
+    if (error.code === '23505') { // Unique constraint violation (email)
+      return res.status(400).json({ error: 'Este e-mail já foi verificado e cadastrado.' });
+    }
+    res.status(500).json({ error: 'Erro ao ativar conta.' });
   }
 };
 
