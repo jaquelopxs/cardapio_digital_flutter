@@ -7,6 +7,7 @@ import dotenv from "dotenv";
 
 dns.setDefaultResultOrder("ipv4first");
 dotenv.config();
+import { pool, initDb } from "./src/config/db.js";
 import authRoutes from "./src/routes/authRoutes.js";
 import produtosRoutes from "./src/routes/produtosRoutes.js";
 import pedidosRoutes from "./src/routes/pedidosRoutes.js";
@@ -62,7 +63,8 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 
-server.listen(PORT, "0.0.0.0", () => {
+server.listen(PORT, "0.0.0.0", async () => {
+  await initDb();
   console.log(`Servidor rodando na porta ${PORT}`);
   console.log(`Conectado ao banco: ${process.env.DB_NAME}`);
 });
