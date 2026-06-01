@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../providers/carrinho_provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/api_service.dart';
 import '../core/constants/app_colors.dart';
+import '../core/utils/phone_formatter.dart';
 
 class CarrinhoScreen extends StatefulWidget {
   const CarrinhoScreen({super.key});
@@ -191,7 +193,17 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
                           children: [
                             _buildTextField('Nome', _nomeController, 'Seu nome completo', Icons.person_outline),
                             const SizedBox(height: 16),
-                            _buildTextField('Telefone', _telefoneController, '(00) 00000-0000', Icons.phone_outlined, keyboardType: TextInputType.phone),
+                            _buildTextField(
+                              'Telefone', 
+                              _telefoneController, 
+                              '(00) 00000-0000', 
+                              Icons.phone_outlined, 
+                              keyboardType: TextInputType.phone,
+                              inputFormatters: [
+                                PhoneMaskFormatter(),
+                              ],
+                              maxLength: 15,
+                            ),
                             const SizedBox(height: 16),
                             _buildTextField('Endereço ou Mesa', _enderecoController, 'Rua, número e bairro ou nº da mesa', Icons.location_on_outlined),
                             const SizedBox(height: 16),
@@ -369,10 +381,20 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, String hint, IconData icon, {TextInputType? keyboardType}) {
+  Widget _buildTextField(
+    String label, 
+    TextEditingController controller, 
+    String hint, 
+    IconData icon, {
+    TextInputType? keyboardType,
+    List<TextInputFormatter>? inputFormatters,
+    int? maxLength,
+  }) {
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
+      maxLength: maxLength,
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
@@ -380,6 +402,7 @@ class _CarrinhoScreenState extends State<CarrinhoScreen> {
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         filled: true,
         fillColor: Colors.grey[50],
+        counterText: "",
       ),
     );
   }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../core/constants/app_colors.dart';
+import '../core/utils/phone_formatter.dart';
 
 class CadastroScreen extends StatefulWidget {
   const CadastroScreen({super.key});
@@ -189,12 +191,17 @@ class _CadastroScreenState extends State<CadastroScreen> {
                 TextFormField(
                   controller: _telefoneController,
                   keyboardType: TextInputType.phone,
+                  inputFormatters: [
+                    PhoneMaskFormatter(),
+                  ],
                   decoration: InputDecoration(
                     labelText: 'Telefone',
                     prefixIcon: const Icon(Icons.phone_outlined),
                     hintText: '(00) 00000-0000',
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
+                  maxLength: 15,
+                  buildCounter: (context, {required currentLength, required isFocused, maxLength}) => null,
                   validator: (value) {
                     if (value == null || value.isEmpty) return 'Informe seu telefone';
                     if (!_isTelefoneValid(value)) return 'Use o padrão (00) 00000-0000';
