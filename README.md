@@ -12,4 +12,4 @@ A few resources to get you started if this is your first Flutter project:
 - [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
 - [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
 
-- Video: https://drive.google.com/file/d/1QjRYmpf2qhgjoS7KctK5Uk2Z2lxPha0T/view?usp=sharing
+- Video: [https://drive.google.com/file/d/1QjRYmpf2qhgjoS7KctK5Uk2Z2lxPha0T/view?usp=sharing](https://drive.google.com/file/d/1CscsPfnreQN0GVQqkKSqONGoQolaASL4/view?usp=drive_link)
